@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1840" height="820" viewBox="0 0 1840 820" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f3f6e"/>
+    </marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e8711c"/>
+    </marker>
+    <style>
+      .box{fill:#e3eefa;stroke:#2a5590;stroke-width:1.5}
+      .gate{fill:#fde9d9;stroke:#e8711c;stroke-width:2}
+      .group{fill:#f4f8fc;stroke:#2a5590;stroke-width:1.5}
+      .svc{fill:#f7fafd;stroke:#1f3f6e;stroke-width:3}
+      .t{fill:#16325c;font-size:15px;text-anchor:middle;dominant-baseline:middle}
+      .tb{fill:#16325c;font-size:15px;font-weight:600;text-anchor:middle;dominant-baseline:middle}
+      .s{fill:#4a6488;font-size:12px;text-anchor:middle;dominant-baseline:middle}
+      .sl{fill:#4a6488;font-size:12px;dominant-baseline:middle}
+      .se{fill:#4a6488;font-size:12px;text-anchor:end;dominant-baseline:middle}
+      .h{fill:#16325c;font-size:22px;font-weight:700}
+      .lbl{fill:#16325c;font-size:13px;font-weight:600}
+      .ol{fill:#e8711c;font-size:11px;font-weight:700}
+      .ln{stroke:#1f3f6e;stroke-width:1.6;fill:none}
+      .dash{stroke:#1f3f6e;stroke-width:1.4;fill:none;stroke-dasharray:6 4}
+      .or{stroke:#e8711c;stroke-width:2.4;fill:none}
+      .ord{stroke:#e8711c;stroke-width:1.8;fill:none;stroke-dasharray:6 4}
+    </style>
+  </defs>
+  <rect width="1840" height="820" fill="#ffffff"/>
+
+  <!-- User instruction + trace open -->
+  <rect class="box" x="40" y="40" width="240" height="50" rx="6"/>
+  <text class="tb" x="160" y="65">User Instruction</text>
+  <path class="ln" d="M160,90 V128" marker-end="url(#a)"/>
+  <path class="ln" d="M280,65 H790 V145 H878" marker-end="url(#a)"/>
+  <text class="lbl" x="535" y="56" text-anchor="middle">open trace · POST /v1/traces</text>
+
+  <!-- Customer pipeline -->
+  <rect class="group" x="20" y="130" width="700" height="470" rx="8"/>
+  <text class="h" x="40" y="168">Customer Agent Pipeline</text>
+  <text class="sl" x="40" y="192">LangGraph graph or plain Redis Streams workers</text>
+
+  <rect class="box" x="40"  y="215" width="90" height="60" rx="6"/><text class="t" x="85"  y="245">Agent A</text>
+  <rect class="box" x="148" y="215" width="90" height="60" rx="6"/><text class="t" x="193" y="237">Redis</text><text class="t" x="193" y="255">Streams</text>
+  <rect class="box" x="256" y="215" width="90" height="60" rx="6"/><text class="t" x="301" y="245">Agent B</text>
+  <rect class="box" x="364" y="215" width="90" height="60" rx="6"/><text class="t" x="409" y="237">Redis</text><text class="t" x="409" y="255">Streams</text>
+  <rect class="box" x="472" y="215" width="90" height="60" rx="6"/><text class="t" x="517" y="245">Agent C</text>
+  <rect class="box" x="580" y="215" width="90" height="60" rx="6"/><text class="t" x="625" y="245">Tool</text>
+  <path class="ln" d="M130,245 H146" marker-end="url(#a)"/>
+  <path class="ln" d="M238,245 H254" marker-end="url(#a)"/>
+  <path class="ln" d="M346,245 H362" marker-end="url(#a)"/>
+  <path class="ln" d="M454,245 H470" marker-end="url(#a)"/>
+  <path class="ln" d="M562,245 H578" marker-end="url(#a)"/>
+
+  <!-- Checkpoints -->
+  <rect class="box" x="40"  y="300" width="90" height="26" rx="4"/><text class="s" x="85"  y="313">PUBLISH</text>
+  <rect class="box" x="256" y="300" width="90" height="26" rx="4"/><text class="s" x="301" y="313">CONSUME</text>
+  <rect class="box" x="256" y="334" width="90" height="26" rx="4"/><text class="s" x="301" y="347">PUBLISH</text>
+  <rect class="box" x="472" y="300" width="90" height="26" rx="4"/><text class="s" x="517" y="313">CONSUME</text>
+  <rect class="gate" x="580" y="300" width="90" height="40" rx="4"/>
+  <text class="s" x="625" y="313" style="font-weight:700;fill:#b4520d">TOOL_CALL</text>
+  <text class="s" x="625" y="329" style="fill:#b4520d">gate</text>
+  <path class="ln" d="M85,275 V300"/><path class="ln" d="M301,275 V300"/><path class="ln" d="M301,326 V334"/>
+  <path class="ln" d="M517,275 V300"/><path class="ln" d="M625,275 V300"/>
+  <path class="ln" d="M85,326 V393" marker-end="url(#a)"/>
+  <path class="ln" d="M301,360 V393" marker-end="url(#a)"/>
+  <path class="ln" d="M517,326 V393" marker-end="url(#a)"/>
+  <path class="ln" d="M625,340 V393" marker-end="url(#a)"/>
+
+  <!-- SDK -->
+  <rect class="box" x="40" y="395" width="660" height="90" rx="6"/>
+  <text class="tb" x="370" y="425">ConstraintLens SDK + Adapter</text>
+  <text class="s" x="370" y="447">LangGraph adapter · Redis worker adapter · guard_hop / guard_tool</text>
+  <text class="s" x="370" y="465">async HTTP client · circuit breaker · local fail policy</text>
+
+  <!-- Approval hook + notes -->
+  <path class="ord" d="M190,485 V518" marker-end="url(#o)"/>
+  <rect class="box" x="40" y="520" width="300" height="56" rx="6"/>
+  <text class="tb" x="190" y="540">Human Approval Hook</text>
+  <text class="s" x="190" y="560">webhook / callback on ESCALATE</text>
+  <text class="sl" x="360" y="535">RE_GROUND: canonical constraint text</text>
+  <text class="sl" x="360" y="551">re-injected, agent retries (bounded)</text>
+  <text class="sl" x="360" y="567">BLOCK at TOOL_CALL: SDK raises ConstraintViolation</text>
+
+  <!-- Request / decision between pipeline and service -->
+  <path class="ln" d="M700,410 H858" marker-end="url(#a)"/>
+  <text class="lbl" x="780" y="392" text-anchor="middle">checkpoint</text>
+  <text class="lbl" x="780" y="404" text-anchor="middle">request</text>
+  <path class="or" d="M1200,460 V476 H702" marker-end="url(#o)"/>
+  <text class="ol" x="780" y="500" text-anchor="middle">Verdict + decision</text>
+  <text class="ol" x="780" y="517" text-anchor="middle">ALLOW</text>
+  <text class="ol" x="780" y="532" text-anchor="middle">ALLOW_WITH_WARNING</text>
+  <text class="ol" x="780" y="547" text-anchor="middle">RE_GROUND</text>
+  <text class="ol" x="780" y="562" text-anchor="middle">BLOCK</text>
+  <text class="ol" x="780" y="577" text-anchor="middle">ESCALATE</text>
+
+  <!-- Service -->
+  <rect class="svc" x="860" y="40" width="620" height="630" rx="8"/>
+  <text class="h" x="880" y="80">ConstraintLens Service</text>
+  <text class="se" x="1460" y="74">FastAPI · hexagonal domain core</text>
+
+  <rect class="box" x="880"  y="110" width="185" height="70" rx="6"/><text class="t" x="972"  y="136">Constraint</text><text class="t" x="972" y="155">Extraction</text>
+  <rect class="box" x="1080" y="110" width="185" height="70" rx="6"/><text class="t" x="1172" y="136">Async Guard</text><text class="s" x="1172" y="157">stale · reorder · loss · redelivery</text>
+  <rect class="box" x="1280" y="110" width="180" height="70" rx="6"/><text class="t" x="1370" y="136">Constraint</text><text class="t" x="1370" y="155">Composer</text>
+
+  <rect class="group" x="880" y="210" width="580" height="150" rx="6"/>
+  <text class="tb" x="1170" y="232">Tiered Drift Checker</text>
+  <rect class="box" x="890"  y="250" width="104" height="90" rx="5"/><text class="tb" x="942"  y="282">T0</text><text class="s" x="942"  y="306">Integrity</text>
+  <rect class="box" x="1004" y="250" width="104" height="90" rx="5"/><text class="tb" x="1056" y="282">T1a</text><text class="s" x="1056" y="306">Action Args</text>
+  <rect class="box" x="1118" y="250" width="104" height="90" rx="5"/><text class="tb" x="1170" y="282">T1b</text><text class="s" x="1170" y="306">Lexical</text>
+  <rect class="box" x="1232" y="250" width="104" height="90" rx="5"/><text class="tb" x="1284" y="282">T1c</text><text class="s" x="1284" y="306">NLI</text>
+  <rect class="box" x="1346" y="250" width="104" height="90" rx="5"/><text class="tb" x="1398" y="282">T2</text><text class="s" x="1398" y="306">LLM Judge</text>
+
+  <rect class="box" x="880"  y="390" width="280" height="70" rx="6"/><text class="t" x="1020" y="416">Drift Attributor</text><text class="s" x="1020" y="438">culprit hop + cause, from event log</text>
+  <rect class="box" x="1180" y="390" width="280" height="70" rx="6"/><text class="t" x="1320" y="416">Enforcer</text><text class="s" x="1320" y="438">verdict + risk class → decision</text>
+  <path class="ln" d="M1400,460 V488" marker-end="url(#a)"/>
+
+  <rect class="box" x="880" y="490" width="580" height="60" rx="6"/>
+  <text class="t" x="1170" y="512">Recorder</text>
+  <text class="s" x="1170" y="533">every verdict + decision logged before the response is returned</text>
+
+  <rect class="box" x="880" y="580" width="580" height="60" rx="6"/>
+  <text class="t" x="1170" y="602">Delivery Layer</text>
+  <text class="s" x="1170" y="623">REST /v1 · WebSocket /v1/stream</text>
+
+  <!-- External dependencies -->
+  <rect class="box" x="1540" y="210" width="270" height="60" rx="6"/>
+  <text class="tb" x="1675" y="232">LLM Judge API</text><text class="s" x="1675" y="253">T2 judge · extraction fallback</text>
+  <path class="ln" d="M1450,295 H1500 V255 H1538" marker-end="url(#a)"/>
+  <path class="dash" d="M972,180 V195 H1515 V228 H1538" marker-end="url(#a)"/>
+
+  <rect class="box" x="1540" y="310" width="270" height="60" rx="6"/>
+  <text class="tb" x="1675" y="332">Local NLI / Embedder</text><text class="s" x="1675" y="353">T1c entailment · routing</text>
+  <path class="ln" d="M1284,340 V352 H1520 V340 H1538" marker-end="url(#a)"/>
+
+  <rect class="box" x="1540" y="490" width="270" height="60" rx="6"/>
+  <text class="tb" x="1675" y="512">Event Log (SQLite)</text><text class="s" x="1675" y="533">append-only · source of truth</text>
+  <path class="ln" d="M1460,520 H1538" marker-end="url(#a)"/>
+  <path class="ln" d="M1675,550 V610 H1462" marker-end="url(#a)"/>
+  <text class="s" x="1570" y="624" text-anchor="middle">events / projections</text>
+
+  <!-- Clients -->
+  <rect class="box" x="880"  y="720" width="280" height="60" rx="6"/><text class="tb" x="1020" y="750">Dashboard</text>
+  <rect class="box" x="1180" y="720" width="280" height="60" rx="6"/><text class="tb" x="1320" y="750">CLI</text>
+  <path class="ln" d="M1020,640 V718" marker-end="url(#a)" marker-start="url(#a)"/>
+  <path class="ln" d="M1320,640 V718" marker-end="url(#a)" marker-start="url(#a)"/>
+  <text class="sl" x="1030" y="690">WebSocket + REST</text>
+  <text class="sl" x="1330" y="690">REST</text>
+
+  <!-- Legend -->
+  <g transform="translate(40,650)">
+    <text class="lbl" x="0" y="0">Legend</text>
+    <path class="ln" d="M0,22 H40" marker-end="url(#a)"/><text class="sl" x="50" y="22">request / data flow</text>
+    <path class="or" d="M0,46 H40" marker-end="url(#o)"/><text class="sl" x="50" y="46">decision returned at every checkpoint</text>
+    <path class="dash" d="M0,70 H40" marker-end="url(#a)"/><text class="sl" x="50" y="70">fallback / conditional path</text>
+    <rect class="gate" x="0" y="86" width="40" height="18" rx="3"/><text class="sl" x="50" y="95">only checkpoint where enforcement is mandatory</text>
+  </g>
+</svg>
