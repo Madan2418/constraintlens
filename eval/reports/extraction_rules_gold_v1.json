@@ -1,0 +1,56 @@
+{
+  "all": {
+    "instructions": 100,
+    "instruction_exact_match": 1.0,
+    "constraint_precision": 1.0,
+    "constraint_recall": 1.0,
+    "constraint_f1": 1.0,
+    "false_constraint_rate": 0.0,
+    "field_accuracy": {
+      "action": 1.0,
+      "resource": 1.0,
+      "subject": 1.0,
+      "max": 1.0,
+      "min": 1.0,
+      "unit": 1.0,
+      "authority": 1.0,
+      "expiry": 1.0
+    }
+  },
+  "dev": {
+    "instructions": 50,
+    "instruction_exact_match": 1.0,
+    "constraint_precision": 1.0,
+    "constraint_recall": 1.0,
+    "constraint_f1": 1.0,
+    "false_constraint_rate": 0.0,
+    "field_accuracy": {
+      "action": 1.0,
+      "resource": 1.0,
+      "subject": 1.0,
+      "max": 1.0,
+      "min": 1.0,
+      "unit": 1.0,
+      "authority": 1.0,
+      "expiry": 1.0
+    }
+  },
+  "holdout": {
+    "instructions": 50,
+    "instruction_exact_match": 1.0,
+    "constraint_precision": 1.0,
+    "constraint_recall": 1.0,
+    "constraint_f1": 1.0,
+    "false_constraint_rate": 0.0,
+    "field_accuracy": {
+      "action": 1.0,
+      "resource": 1.0,
+      "subject": 1.0,
+      "max": 1.0,
+      "min": 1.0,
+      "unit": 1.0,
+      "authority": 1.0,
+      "expiry": 1.0
+    }
+  }
+}

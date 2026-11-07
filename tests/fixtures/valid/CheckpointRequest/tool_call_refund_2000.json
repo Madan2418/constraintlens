@@ -1,0 +1,79 @@
+{
+  "trace_id": "3f0c9a52-5d1e-4c1b-9a77-0d6e2b8f4471",
+  "hop_id": "h3",
+  "checkpoint": "TOOL_CALL",
+  "envelope": {
+    "trace_id": "3f0c9a52-5d1e-4c1b-9a77-0d6e2b8f4471",
+    "hop": {
+      "hop_id": "h3",
+      "parent_hop_ids": [
+        "h2"
+      ],
+      "hop_seq": 3,
+      "agent_id": "payments",
+      "emitted_at": "2026-11-07T09:12:20Z"
+    },
+    "constraints": [
+      {
+        "constraint_id": "7d2e1b4a-90c3-4f5e-8a21-6b3c9d0e1f21",
+        "scope": "user",
+        "owner": "user:alice",
+        "subject": "order:4471",
+        "action": "refund",
+        "resource": "order",
+        "limit": {
+          "max_value": "100",
+          "min_value": null,
+          "unit": "USD"
+        },
+        "authority": "requires_approval_above_limit",
+        "risk_class": "high",
+        "origin": "user",
+        "canonical_text": "Refund order #4471 up to 100 USD; amounts above 100 USD require manager approval.",
+        "content_hash": "d0f631ca1ddba8db3bcfcb9e057cdc98d0379f1bee00e75a545147a27dadd982",
+        "issued_at": "2026-11-07T09:00:00Z",
+        "expiry": "2026-11-08T09:00:00Z",
+        "max_age_seconds": 3600
+      },
+      {
+        "constraint_id": "a41f6c0d-2b7e-4d93-b5c8-1e0f9a7b3c62",
+        "scope": "org",
+        "owner": "org:acme-support",
+        "subject": "*",
+        "action": "refund",
+        "resource": "order",
+        "limit": {
+          "max_value": "50",
+          "unit": "USD"
+        },
+        "authority": "none",
+        "risk_class": "high",
+        "origin": "policy",
+        "canonical_text": "Refunds never exceed 50 USD.",
+        "content_hash": "9c0abe51c6e6655d81de2d044d4fb194931f058c0426c67c7285d8f5657ed64a",
+        "issued_at": "2026-11-01T00:00:00Z",
+        "expiry": null,
+        "max_age_seconds": null
+      }
+    ],
+    "envelope_digest": "8eda83bf845725afb0cc504bf28b120bfea64f229e4939081c7125950d5eb3c2",
+    "payload_text": "Refund order #4471 in full.",
+    "payload_args": {
+      "order": 4471,
+      "amount": 2000
+    }
+  },
+  "proposed_action": {
+    "tool": "issue_refund",
+    "args": {
+      "order": 4471,
+      "amount": 2000
+    }
+  },
+  "transport_meta": {
+    "message_id": "1702-0",
+    "delivery_count": 2,
+    "enqueued_at": "2026-11-07T09:12:15Z",
+    "consumed_at": "2026-11-07T09:12:20Z"
+  }
+}

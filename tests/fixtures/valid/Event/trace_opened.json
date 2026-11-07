@@ -1,0 +1,13 @@
+{
+  "event_id": 1,
+  "trace_id": "3f0c9a52-5d1e-4c1b-9a77-0d6e2b8f4471",
+  "type": "TRACE_OPENED",
+  "hop_id": null,
+  "occurred_at": "2026-11-07T09:00:00Z",
+  "payload": {
+    "constraint_ids": [
+      "7d2e1b4a-90c3-4f5e-8a21-6b3c9d0e1f21",
+      "a41f6c0d-2b7e-4d93-b5c8-1e0f9a7b3c62"
+    ]
+  }
+}

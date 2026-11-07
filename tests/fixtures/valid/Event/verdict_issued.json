@@ -1,0 +1,11 @@
+{
+  "event_id": 42,
+  "trace_id": "3f0c9a52-5d1e-4c1b-9a77-0d6e2b8f4471",
+  "type": "VERDICT_ISSUED",
+  "hop_id": "h3",
+  "occurred_at": "2026-11-07T09:12:20.004Z",
+  "payload": {
+    "verdict_id": "b1c4e0f2-3a5d-4c6b-8e7f-9a0b1c2d3e4f",
+    "decision": "BLOCK"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "constraint_id": "7d2e1b4a-90c3-4f5e-8a21-6b3c9d0e1f21",
+  "scope": "user",
+  "owner": "user:alice",
+  "subject": "order:4471",
+  "action": "refund",
+  "resource": "order",
+  "limit": {
+    "max_value": "100",
+    "min_value": null,
+    "unit": "USD"
+  },
+  "authority": "requires_approval_above_limit",
+  "risk_class": "high",
+  "origin": "user",
+  "canonical_text": "Refund order #4471 up to 100 USD; amounts above 100 USD require manager approval.",
+  "content_hash": "d0f631ca1ddba8db3bcfcb9e057cdc98d0379f1bee00e75a545147a27dadd982",
+  "issued_at": "2026-11-07T09:00:00",
+  "expiry": "2026-11-08T09:00:00Z",
+  "max_age_seconds": 3600
+}

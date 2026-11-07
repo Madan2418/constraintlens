@@ -1,0 +1,20 @@
+{
+  "constraint_id": "a41f6c0d-2b7e-4d93-b5c8-1e0f9a7b3c62",
+  "scope": "org",
+  "owner": "org:acme-support",
+  "subject": "*",
+  "action": "refund",
+  "resource": "order",
+  "limit": {
+    "max_value": "50",
+    "unit": "USD"
+  },
+  "authority": "none",
+  "risk_class": "high",
+  "origin": "policy",
+  "canonical_text": "Refunds never exceed 50 USD.",
+  "content_hash": "9c0abe51c6e6655d81de2d044d4fb194931f058c0426c67c7285d8f5657ed64a",
+  "issued_at": "2026-11-01T00:00:00Z",
+  "expiry": null,
+  "max_age_seconds": null
+}

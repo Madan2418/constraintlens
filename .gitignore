@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+build/
+dist/
+*.egg-info/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.import_linter_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Local config and data
+.env
+data/
+models/
+driftchain_bench/data/*.jsonl
+
+# Dashboard
+node_modules/
+dashboard/dist/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

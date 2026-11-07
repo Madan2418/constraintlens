@@ -1,0 +1,38 @@
+{
+  "all": {
+    "instructions": 20,
+    "instruction_exact_match": 0.85,
+    "constraint_precision": 1.0,
+    "constraint_recall": 0.85,
+    "constraint_f1": 0.9189,
+    "false_constraint_rate": 0.0,
+    "field_accuracy": {
+      "action": 0.85,
+      "resource": 0.85,
+      "subject": 0.85,
+      "max": 0.85,
+      "min": 0.85,
+      "unit": 0.85,
+      "authority": 0.85,
+      "expiry": 0.85
+    }
+  },
+  "probe": {
+    "instructions": 20,
+    "instruction_exact_match": 0.85,
+    "constraint_precision": 1.0,
+    "constraint_recall": 0.85,
+    "constraint_f1": 0.9189,
+    "false_constraint_rate": 0.0,
+    "field_accuracy": {
+      "action": 0.85,
+      "resource": 0.85,
+      "subject": 0.85,
+      "max": 0.85,
+      "min": 0.85,
+      "unit": 0.85,
+      "authority": 0.85,
+      "expiry": 0.85
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "constraint_id": "7d2e1b4a-90c3-4f5e-8a21-6b3c9d0e1f21",
+  "culprit_hop": "h2",
+  "culprit_agent": "triage",
+  "cause": "GREMLINS",
+  "delta": 0.72,
+  "evidence_events": [
+    17,
+    23
+  ]
+}

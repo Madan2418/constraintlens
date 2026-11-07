@@ -1,0 +1,26 @@
+{
+  "verdict_id": "c2d5f1a3-4b6e-4d7c-9f80-ab1c2d3e4f50",
+  "trace_id": "3f0c9a52-5d1e-4c1b-9a77-0d6e2b8f4471",
+  "hop_id": "h2",
+  "checkpoint": "PUBLISH",
+  "tier_used": "T1b",
+  "scores": {
+    "7d2e1b4a-90c3-4f5e-8a21-6b3c9d0e1f21": 0.21
+  },
+  "failures": [
+    {
+      "kind": "TEXTUAL_DRIFT",
+      "constraint_id": "7d2e1b4a-90c3-4f5e-8a21-6b3c9d0e1f21",
+      "detail": "limit '100 USD' and qualifier 'approval' missing from task text"
+    }
+  ],
+  "decision": "RE_GROUND",
+  "degraded": false,
+  "reason": "Task text no longer entails the refund limit",
+  "latency_ms": {
+    "T0": 0.3,
+    "T1b": 0.6
+  },
+  "cache_hit": false,
+  "regrounded_text": null
+}

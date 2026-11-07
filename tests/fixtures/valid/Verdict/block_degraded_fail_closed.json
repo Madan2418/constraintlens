@@ -1,0 +1,21 @@
+{
+  "verdict_id": "e4f7b3c5-6d80-4f9e-b1a2-cd3e4f506172",
+  "trace_id": "3f0c9a52-5d1e-4c1b-9a77-0d6e2b8f4471",
+  "hop_id": "h1",
+  "checkpoint": "PUBLISH",
+  "tier_used": "T1c",
+  "scores": {
+    "7d2e1b4a-90c3-4f5e-8a21-6b3c9d0e1f21": 0.55
+  },
+  "failures": [],
+  "decision": "BLOCK",
+  "degraded": true,
+  "reason": "Judge unavailable; uncertainty band on high-risk constraint, failing closed",
+  "latency_ms": {
+    "T0": 0.3,
+    "T1b": 0.5,
+    "T1c": 41.0
+  },
+  "cache_hit": false,
+  "regrounded_text": null
+}

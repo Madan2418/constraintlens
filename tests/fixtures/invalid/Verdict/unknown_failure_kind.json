@@ -1,0 +1,26 @@
+{
+  "verdict_id": "b1c4e0f2-3a5d-4c6b-8e7f-9a0b1c2d3e4f",
+  "trace_id": "3f0c9a52-5d1e-4c1b-9a77-0d6e2b8f4471",
+  "hop_id": "h3",
+  "checkpoint": "TOOL_CALL",
+  "tier_used": "T1a",
+  "scores": {
+    "7d2e1b4a-90c3-4f5e-8a21-6b3c9d0e1f21": 0.12
+  },
+  "failures": [
+    {
+      "kind": "OOPS",
+      "constraint_id": null,
+      "detail": "x"
+    }
+  ],
+  "decision": "BLOCK",
+  "degraded": false,
+  "reason": "Proposed action violates constraint 7d2e1b4a-90c3-4f5e-8a21-6b3c9d0e1f21",
+  "latency_ms": {
+    "T0": 0.4,
+    "T1a": 0.2
+  },
+  "cache_hit": false,
+  "regrounded_text": null
+}
