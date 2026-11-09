@@ -213,8 +213,8 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
       <h1>ConstraintLens build log</h1>
       <p class="lede">A runtime framework that detects semantic constraint drift in asynchronous multi-agent AI systems. It checks that a constraint such as "refund up to $100" still means the same thing after each agent rewrites the task, and it blocks the tool call when the meaning has been lost.</p>
       <div class="status-bar">
-        <span class="pill ok"><span class="dot"></span>Phases 0–5 complete · Phase 6 next</span>
-        <span class="pill neutral">Sessions logged: 7</span>
+        <span class="pill ok"><span class="dot"></span>Phases 0–6 complete · Phase 7 next</span>
+        <span class="pill neutral">Sessions logged: 8</span>
         <span class="pill neutral">Last updated 2026-11-09</span>
         <span class="pill neutral">Python 3.11+ · FastAPI · React</span>
       </div>
@@ -441,8 +441,8 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
         <div class="phase"><span class="num">P3</span><div><h4>Service and direct handoff</h4><p>FastAPI <code>/v1</code>, SDK, SQLite event store, Tier 0 and 1a, enforcement table, recorder.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P4</span><div><h4>Async boundary</h4><p>Redis Streams transport, async guard (staleness, reordering, loss, redelivery), idempotent verdicts.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P5</span><div><h4>Semantic tiers</h4><p>T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing, degraded path.</p></div><span class="pill ok">done</span></div>
-        <div class="phase"><span class="num">P6</span><div><h4>driftchain-bench</h4><p>6 scenarios × 9 operators, async profiles, seeded generator, JSONL schema, dataset card.</p></div><span class="pill warn">next</span></div>
-        <div class="phase"><span class="num">P7</span><div><h4>Attribution</h4><p>DAG edge deltas, fan-in, async-cause classification, replay endpoint.</p></div><span class="pill neutral">planned</span></div>
+        <div class="phase"><span class="num">P6</span><div><h4>driftchain-bench</h4><p>6 scenarios × 9 operators, async profiles, seeded generator, JSONL schema, dataset card.</p></div><span class="pill ok">done</span></div>
+        <div class="phase"><span class="num">P7</span><div><h4>Attribution</h4><p>DAG edge deltas, fan-in, async-cause classification, replay endpoint.</p></div><span class="pill warn">next</span></div>
         <div class="phase"><span class="num">P8</span><div><h4>Evaluation</h4><p>B0–B3, C1–C3 and embedding-only configs, threshold tuning on val, bootstrap CIs, <code>make eval</code>.</p></div><span class="pill neutral">planned</span></div>
         <div class="phase"><span class="num">P9</span><div><h4>Dashboard and CLI</h4><p>The six views previewed above, plus the Typer CLI.</p></div><span class="pill neutral">planned</span></div>
         <div class="phase"><span class="num">P10</span><div><h4>Hardening and write-up</h4><p>docker compose, threat model, dataset release, demo script.</p></div><span class="pill neutral">planned</span></div>
@@ -559,6 +559,20 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
           <li><b>Fixed along the way</b>: replay with no tier override rebuilt the default checker instead of the live one (it would have reported spurious changes). Replay is now the live tiers with a cache-only judge, so it never spends money. <code>guard_hop</code> now applies a CONSUME re-ground. A halted run keeps its hop log and shows in the matrix as "halted".</li>
           <li><b>Exit criteria met</b>: <code>eval/latency_budget.py</code> gives T0/T1a/T1b p95 ≈ 0.1 ms (budget 5 ms) and end to end without escalation p95 ≈ 12 ms (budget 150 ms), with a CI test on regressions. The judge failure path degrades correctly (high risk BLOCK, low risk WARN, <code>JUDGE_FAILED</code>), end to end through the SDK.</li>
           <li>ADR 0007 records the decisions. Totals: 615 tests pass (2 real-Redis tests skipped locally), domain coverage 98%, ruff, mypy and import-linter clean. Open: SCOPE_WIDEN needs a real NLI model or judge; thresholds wait for Phase 8 tuning; no live model ran here (no key or weights on this host).</li>
+        </ul>
+      </div>
+      <div class="session" style="margin-top:22px">
+        <div class="meta"><h3>Session 8</h3><span class="pill neutral">2026-11-10</span><span class="pill ok">Phase 6 done</span><span class="pill warn">human labels pending</span><span class="pill ok">pushed</span></div>
+        <ul>
+          <li><b>driftchain-bench</b> is a top-level, separately releasable package. Two import-linter contracts keep it apart from ConstraintLens in both directions, so the tool can never read labels. Strict mypy.</li>
+          <li><b>Scenarios and operators</b>: 6 YAML scenario templates (refund, transfer, data access, scheduling, deletion, procurement) plus shared phrase pools with hard-negative rewordings. 9 registered operators, one module each, including adversarial "this is compliant" injections (§21.1) and STALE_CONTEXT (dwell past the 6 h freshness bound).</li>
+          <li><b>Generator</b>: scripted agents hold beliefs and write text from them; operators rewrite beliefs at the mutated hop. Topologies are linear, fan-out (a side branch) and fan-in (two branches join at the acting agent, and the last arrival wins, so reordering changes outcomes). Dwell, reorder and redelivery profiles. Each draw has its own string-seeded RNG, so the output is byte-for-byte reproducible.</li>
+          <li><b>Release v0.1.0</b>: 4,000 chains, 50% controls (51% of them hard negatives), 237–254 chains per operator, every scenario × operator cell filled, exact 20/20/60 splits by instance (816 / 816 / 2,368). The JSONL is regenerated, not committed; the manifest pins its SHA-256 and a new CI job regenerates and compares.</li>
+          <li><b>Labels by construction</b>: an oracle checks the final tool call against the original constraints. A test re-derives every violation with ConstraintLens's own composition and matches on all 4,000 chains. A reference check of the constraint-bearing features runs on every generated text, and tests confirm each operator's effect and that controls keep every constraint.</li>
+          <li><b>Schema locked</b>: <code>schema.json</code> is generated from the record model and committed; a test and <code>python -m driftchain_bench check</code> fail on drift. <code>.gitattributes</code> pins LF so a Windows checkout reproduces it byte for byte.</li>
+          <li><b>Paraphrase batch</b> (official anthropic SDK, default <code>claude-sonnet-5-5</code>, a different model from the judge): a rewrite is accepted only if every constraint feature survives, outputs are cached, and a <code>--max-calls</code> guard limits calls. Not run: no API key here, so v0.1.0 is template text.</li>
+          <li><b>Hand validation</b>: a stratified blind 300-chain sample (all 48 drift cells plus controls), a sheet, a CSV template, a labeling guide, and an agreement report (Cohen's kappa, culprit-hop accuracy, inter-annotator kappa). <b>No human labels yet</b>, so the "agreement reported" exit criterion is open and Phase 8 tuning should wait for it.</li>
+          <li>ADR 0008, the dataset card and the README are updated. Totals: 665 tests pass (2 real-Redis tests skipped locally), including a clean-export run; domain coverage 98%; ruff, mypy and import-linter (7/7) clean. Commit <code>a26d8ba</code>.</li>
         </ul>
       </div>
     </section>
