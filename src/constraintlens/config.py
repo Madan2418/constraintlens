@@ -60,6 +60,12 @@ class Settings(BaseSettings):
     fail_high_risk: FailMode = "closed"
     fail_low_risk: FailMode = "open"
     max_regrounds: int = Field(default=2, ge=0)
+    # ADR 0005: route approval-threshold breaches to a human (ESCALATE) instead of BLOCK.
+    escalate_approvals: bool = False
+
+    # API protection (§21.1). Empty api_key = authentication off (local development).
+    api_key: SecretStr | None = None
+    max_request_bytes: int = Field(default=1_000_000, gt=0)
 
     # Privacy
     store_full_text: bool = False
@@ -78,6 +84,7 @@ class Settings(BaseSettings):
     def snapshot(self) -> dict[str, Any]:
         """Effective configuration with secrets redacted."""
         data = self.model_dump(mode="json")
-        if self.judge_api_key is not None:
-            data["judge_api_key"] = "***"
+        for secret in ("judge_api_key", "api_key"):
+            if getattr(self, secret) is not None:
+                data[secret] = "***"
         return data

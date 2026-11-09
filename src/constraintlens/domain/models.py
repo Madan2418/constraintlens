@@ -231,11 +231,38 @@ class Envelope(_Model):
 # --------------------------------------------------------------------------- #
 
 
+class ActionBinding(_Frozen):
+    """How a tool's arguments map onto constraint dimensions (ADR 0005).
+
+    Declared once per tool by the pipeline author (``guard_tool``). It is what lets
+    Tier 1a compare A_k with a constraint structurally, independent of any text.
+    """
+
+    action: str = NonEmptyStr  # constraint.action this tool performs, e.g. "refund"
+    resource: str = NonEmptyStr  # constraint.resource, e.g. "order"
+    amount_arg: str | None = None  # argument holding the amount / count
+    unit: str | None = None  # fixed unit for the amount, e.g. "USD"
+    unit_arg: str | None = None  # or: argument holding the unit
+    subject_arg: str | None = None  # argument identifying the subject item
+    subject_kind: str | None = None  # kind prefix for the subject, e.g. "order"
+
+    @model_validator(mode="after")
+    def _consistent(self) -> ActionBinding:
+        if self.amount_arg is not None and (self.unit is None) == (self.unit_arg is None):
+            raise ValueError("an amount_arg needs exactly one of unit or unit_arg")
+        if self.amount_arg is None and (self.unit or self.unit_arg):
+            raise ValueError("unit / unit_arg given without amount_arg")
+        if self.subject_kind is not None and self.subject_arg is None:
+            raise ValueError("subject_kind given without subject_arg")
+        return self
+
+
 class ProposedAction(_Frozen):
     """A_k: the structured tool call a hop is about to execute (§4.1, §13.5)."""
 
     tool: str = NonEmptyStr
     args: dict[str, Any] = Field(default_factory=dict)
+    binding: ActionBinding | None = None  # absent: Tier 1a cannot check this tool
 
 
 class TransportMeta(_Frozen):

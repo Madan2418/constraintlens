@@ -1,4 +1,4 @@
-"""EventStore contract (§6.3, §12.1). Every adapter must pass; SQLite joins in Phase 3."""
+"""EventStore contract (§6.3, §12.1). Every adapter must pass: memory and SQLite."""
 
 from __future__ import annotations
 
@@ -8,18 +8,37 @@ from uuid import uuid4
 import pytest
 
 from constraintlens.adapters.store.memory import InMemoryStore
+from constraintlens.adapters.store.sqlite import SQLiteEventStore
 from constraintlens.domain.ports import EventStore
 from tests.factories import make_draft
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import AsyncIterator, Awaitable, Callable
+    from pathlib import Path
 
-FACTORIES: list[Callable[[], EventStore]] = [InMemoryStore]
+
+async def _memory(_tmp: Path) -> EventStore:
+    return InMemoryStore()
 
 
-@pytest.fixture(params=FACTORIES, ids=lambda f: f.__name__)
-def store(request: pytest.FixtureRequest) -> EventStore:
-    return request.param()
+async def _sqlite_memory(_tmp: Path) -> EventStore:
+    return await SQLiteEventStore("sqlite:///:memory:").initialize()
+
+
+async def _sqlite_file(tmp: Path) -> EventStore:
+    return await SQLiteEventStore(f"sqlite:///{tmp / 'events.db'}").initialize()
+
+
+FACTORIES: list[Callable[[Path], Awaitable[EventStore]]] = [_memory, _sqlite_memory, _sqlite_file]
+
+
+@pytest.fixture(params=FACTORIES, ids=lambda f: f.__name__.lstrip("_"))
+async def store(request: pytest.FixtureRequest, tmp_path: Path) -> AsyncIterator[EventStore]:
+    s = await request.param(tmp_path)
+    yield s
+    close = getattr(s, "close", None)
+    if close is not None:
+        await close()
 
 
 def test_satisfies_protocol(store: EventStore) -> None:

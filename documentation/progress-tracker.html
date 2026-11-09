@@ -213,8 +213,8 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
       <h1>ConstraintLens build log</h1>
       <p class="lede">A runtime framework that detects semantic constraint drift in asynchronous multi-agent AI systems. It checks that a constraint such as "refund up to $100" still means the same thing after each agent rewrites the task, and it blocks the tool call when the meaning has been lost.</p>
       <div class="status-bar">
-        <span class="pill ok"><span class="dot"></span>Phases 0–1 complete · Phase 2 next</span>
-        <span class="pill neutral">Sessions logged: 3</span>
+        <span class="pill ok"><span class="dot"></span>Phases 0–3 complete · Phase 4 next</span>
+        <span class="pill neutral">Sessions logged: 5</span>
         <span class="pill neutral">Last updated 2026-11-07</span>
         <span class="pill neutral">Python 3.11+ · FastAPI · React</span>
       </div>
@@ -437,9 +437,9 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
       <div class="card phases">
         <div class="phase"><span class="num">P0</span><div><h4>Foundations</h4><p>pyproject, Makefile, CI, ADR template, domain models (§8), ports (§6.3), all fakes, import-linter contract.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P1</span><div><h4>Constraint layer</h4><p>Rule-based and LLM extraction, canonicalization, SHA-256 hashing, composition (most-restrictive-wins), property tests.</p></div><span class="pill ok">done</span></div>
-        <div class="phase"><span class="num">P2</span><div><h4>Baseline pipelines</h4><p>Unprotected LangGraph refund pipeline and Redis-worker pipeline that reproduce the silent violation.</p></div><span class="pill warn">next</span></div>
-        <div class="phase"><span class="num">P3</span><div><h4>Service and direct handoff</h4><p>FastAPI <code>/v1</code>, SDK, SQLite event store, Tier 0 and 1a, enforcement table, recorder.</p></div><span class="pill neutral">planned</span></div>
-        <div class="phase"><span class="num">P4</span><div><h4>Async boundary</h4><p>Redis Streams transport, async guard (staleness, reordering, loss, redelivery), idempotent verdicts.</p></div><span class="pill neutral">planned</span></div>
+        <div class="phase"><span class="num">P2</span><div><h4>Baseline pipelines</h4><p>Unprotected LangGraph refund pipeline and Redis-worker pipeline that reproduce the silent violation.</p></div><span class="pill ok">done</span></div>
+        <div class="phase"><span class="num">P3</span><div><h4>Service and direct handoff</h4><p>FastAPI <code>/v1</code>, SDK, SQLite event store, Tier 0 and 1a, enforcement table, recorder.</p></div><span class="pill ok">done</span></div>
+        <div class="phase"><span class="num">P4</span><div><h4>Async boundary</h4><p>Redis Streams transport, async guard (staleness, reordering, loss, redelivery), idempotent verdicts.</p></div><span class="pill warn">next</span></div>
         <div class="phase"><span class="num">P5</span><div><h4>Semantic tiers</h4><p>T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing, degraded path.</p></div><span class="pill neutral">planned</span></div>
         <div class="phase"><span class="num">P6</span><div><h4>driftchain-bench</h4><p>6 scenarios × 9 operators, async profiles, seeded generator, JSONL schema, dataset card.</p></div><span class="pill neutral">planned</span></div>
         <div class="phase"><span class="num">P7</span><div><h4>Attribution</h4><p>DAG edge deltas, fan-in, async-cause classification, replay endpoint.</p></div><span class="pill neutral">planned</span></div>
@@ -499,6 +499,36 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
           <li><b>Exit criterion, composition property tests</b>: pass. They cover never looser than any input, order independence, idempotence, adding a constraint never loosens, unsatisfiable admits nothing, hash round trip, and exact subject intersection.</li>
           <li>Totals: 207 tests pass, domain coverage 99%, ruff, mypy strict and import-linter (3/3) clean. Not committed yet.</li>
           <li>Open item: the LLM path has only been tested with ScriptedJudge. A real provider adapter (Anthropic) lands with Tier 2 in Phase 5, or earlier if a judge API key and model are provided.</li>
+        </ul>
+      </div>
+      <div class="session" style="margin-top:22px">
+        <div class="meta"><h3>Session 4</h3><span class="pill neutral">2026-11-07</span><span class="pill ok">Phase 2 done</span></div>
+        <ul>
+          <li>Committed and pushed Phases 0–1 to the branch <code>phase-0-1-foundations</code> on GitHub (2 commits).</li>
+          <li><b>Scripted agents</b> (<code>pipelines/common/</code>): each agent reads incoming text into task facts and writes its own wording. Drift = a §13.3 operator applied at a chosen hop (NONE, NUMERIC_LOOSEN, QUALIFIER_DELETE, NEGATION_FLIP, SCOPE_WIDEN, SUMMARIZATION_LOSS, INJECTED_INSTRUCTION via a tool result, CONSTRAINT_DROP_ONE). Runs are deterministic. STALE_CONTEXT is deferred to Phase 4.</li>
+          <li><b>Independent oracle</b> judges executed tool calls against the user's original intent. It is not part of the pipeline and does not use ConstraintLens.</li>
+          <li><b>LangGraph refund pipeline</b> (<code>pipelines/baseline/refund_langgraph.py</code>): Intake, a 12-minute virtual dwell, Triage, Payments. It reproduces §2.1 <i>word for word</i>: triage drops the limit and payments runs <code>issue_refund(order=4471, amount=2000)</code> with no error. <code>--matrix</code> prints every operator.</li>
+          <li><b>Redis-worker procurement pipeline</b> (<code>pipelines/baseline/procurement_redis_workers.py</code>): consumer groups, XREADGROUP/XACK/XAUTOCLAIM, 45-minute dwell. <code>--crash-before-ack</code> shows at-least-once redelivery placing the order <i>twice</i> ($28,000 for one $15,000 request). It runs on fakeredis by default and on real Redis with <code>--redis-url</code>.</li>
+          <li>The import-linter contract "baseline pipelines never touch ConstraintLens" was verified with a probe import (BROKEN, as intended). There are now 4 contracts.</li>
+          <li>Findings worth keeping for the report: not every drift does harm (QUALIFIER_DELETE in refund, SCOPE_WIDEN in procurement), and with the org policy on, user-limit drift is masked by the stricter org cap. This is the §4.2 split between textual drift and action violation.</li>
+          <li>Exit criteria: both pipelines run end to end. The full mutation × hop × org-policy matrix matches the ground-truth table I wrote before running it. 301 tests pass (1 real-Redis test skipped without <code>REDIS_URL</code>); ruff, mypy and import-linter are clean. ADR 0004 records the design. <code>make demo-baseline</code> runs the demo.</li>
+          <li>Not yet committed. The build-log artifact still needs republishing (artifact tools unavailable this session).</li>
+        </ul>
+      </div>
+      <div class="session" style="margin-top:22px">
+        <div class="meta"><h3>Session 5</h3><span class="pill neutral">2026-11-07</span><span class="pill ok">Phase 3 done</span></div>
+        <ul>
+          <li><b>Checker</b> (<code>domain/checker/</code>): a TieredChecker registry with terminal/escalate routing. <b>Tier 0</b>: constraints lost or dropped, hash mismatch (tampered copy, stale hash, wrong envelope digest), expired. <b>Tier 1a</b>: the tool's bound arguments (amount, unit, subject) compared with the effective constraint; each broken constraint is named, and unreadable arguments fail safe.</li>
+          <li><b>Enforcement</b> (<code>domain/enforcement.py</code>): the §7.8 table as data, with every row tested. Strictest decision wins (BLOCK outranks ESCALATE), plus the fail policy for degraded tiers and a re-ground limit.</li>
+          <li><b>Application</b>: VerifyCheckpoint is idempotent (key or checkpoint), uses a per-key lock so concurrent duplicates wait, records before responding, redacts text before persistence, and fails closed for high risk if the recorder fails. Also CloseTrace, ReplayTrace (no side effects, tier/policy overrides) and metrics. Trace state is a pure fold of the event log.</li>
+          <li><b>SQLite event store</b> (SQLAlchemy + aiosqlite, WAL, single writer). Projections update in the same transaction, <code>UNIQUE(trace, hop, checkpoint)</code> holds, and <code>project_all()</code> rebuilds identically. It passes the same contract suite as the in-memory store.</li>
+          <li><b>FastAPI <code>/v1</code></b>: traces, checkpoints (Idempotency-Key), close, summary, events, replay, metrics, health. RFC 7807 errors (400/404/409/413), optional X-API-Key, size limit. Starts with <code>python -m constraintlens.api</code>; I checked it over real HTTP.</li>
+          <li><b>SDK</b>: <code>guard_hop</code> (CONSUME/PUBLISH, re-ground with the canonical text, retry hop ids <code>h2/r1</code>) and <code>guard_tool</code> (TOOL_CALL gate, one sub-hop per call <code>h3.t1</code>; raises ConstraintViolation so the tool never runs). Circuit breaker and on_unavailable fail policy. LangGraph state adapter.</li>
+          <li><b>Exit criterion 1 met</b>: the protected LangGraph pipeline (same agents and drift as the baseline) blocks every amount-based violation at the tool gate: NUMERIC_LOOSEN, NEGATION_FLIP, SUMMARIZATION_LOSS, INJECTED_INSTRUCTION, and CONSTRAINT_DROP_ONE against the declared $50 org policy.</li>
+          <li><b>Exit criterion 2 met</b>: the event log holds a verdict for every checkpoint (7 in the worked example); replay reproduces all 7 decisions; SQL projections rebuild identically from the log.</li>
+          <li><b>Known gap, kept visible</b>: SCOPE_WIDEN is not caught. "Refund this customer" names no order, so the subject is <code>*</code>. This needs the Phase 5 semantic tiers.</li>
+          <li>Decisions recorded in ADR 0005: tool bindings, BLOCK vs ESCALATE (escalate only with an approval route), sub-hop and retry ids, extra table rows, replay over redacted text. A 5th import contract keeps server code out of the SDK.</li>
+          <li>Totals: 430 tests pass (1 real-Redis test skipped), 98% line coverage, ruff, mypy and import-linter (5/5) clean. Measured on 7 local checks: T0 p95 0.44 ms, T1a 0.09 ms (budget &lt; 5 ms); proper latency evaluation is Phase 8. Not committed yet.</li>
         </ul>
       </div>
     </section>

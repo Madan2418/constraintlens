@@ -46,3 +46,22 @@ class DependencyUnavailable(ConstraintLensError):
         self.dependency = dependency
         self.detail = detail
         super().__init__(f"{dependency} unavailable" + (f": {detail}" if detail else ""))
+
+
+class CheckpointNotReady(ConstraintLensError):
+    """A predecessor hop has not been observed yet; retry later (§9.4, ADR 0006).
+
+    Not a verdict: nothing is stored under the idempotency key, so the retry is judged
+    afresh once the gap is resolved or the join timeout has passed.
+    """
+
+    status_code = 425
+    title = "Checkpoint not ready"
+
+    def __init__(self, missing_parents: list[str], retry_after_s: float) -> None:
+        self.missing_parents = missing_parents
+        self.retry_after_s = retry_after_s
+        super().__init__(
+            f"predecessor hop(s) {', '.join(missing_parents)} not observed yet; "
+            f"retry within {retry_after_s:.0f}s"
+        )

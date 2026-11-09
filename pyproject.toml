@@ -8,14 +8,27 @@ license = { text = "MIT" }
 dependencies = [
     "pydantic>=2.7,<3",
     "pydantic-settings>=2.3,<3",
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "httpx>=0.27",
+    "sqlalchemy[asyncio]>=2.0.30",
+    "aiosqlite>=0.20",
+    "redis>=5.0",
+]
+
+[project.optional-dependencies]
+# Reference pipelines (ARCHITECTURE.md §17 pipelines/). Not needed by the service.
+pipelines = [
+    "langgraph>=0.2",
 ]
 
 [dependency-groups]
 dev = [
+    "fakeredis>=2.23",
     "pytest>=8.2",
     "pytest-asyncio>=0.23",
     "pytest-cov>=5.0",
-    "hypothesis>=6.100",
+    "hypothesis>=6.100,<6.156",  # 6.156+ ships a native extension; pure wheels keep CI and locked-down Windows hosts equal
     "ruff>=0.5",
     "mypy>=1.10",
     "import-linter>=2.0",
@@ -71,6 +84,9 @@ ignore = [
     "N818",  # exception names are fixed by ARCHITECTURE.md §11.4
 ]
 
+[tool.ruff.lint.isort]
+known-first-party = ["constraintlens", "pipelines", "eval", "tests"]
+
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = [
     "pydantic.BaseModel",
@@ -85,7 +101,7 @@ runtime-evaluated-base-classes = [
 python_version = "3.11"
 plugins = ["pydantic.mypy"]
 mypy_path = "src"
-packages = ["constraintlens"]
+packages = ["constraintlens", "pipelines"]
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
@@ -104,7 +120,7 @@ warn_required_dynamic_aliases = true
 # import-linter  (ARCHITECTURE.md §17 import rule)
 # --------------------------------------------------------------------------- #
 [tool.importlinter]
-root_packages = ["constraintlens"]
+root_packages = ["constraintlens", "pipelines"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -143,4 +159,21 @@ forbidden_modules = [
     "constraintlens.api",
     "constraintlens.sdk",
     # "constraintlens.cli" is added when cli.py lands (Phase 9).
+]
+
+[[tool.importlinter.contracts]]
+name = "Baseline pipelines and shared agents never touch ConstraintLens"
+type = "forbidden"
+source_modules = ["pipelines.baseline", "pipelines.common"]
+forbidden_modules = ["constraintlens"]
+
+[[tool.importlinter.contracts]]
+name = "SDK carries no server-side code"
+type = "forbidden"
+source_modules = ["constraintlens.sdk"]
+forbidden_modules = [
+    "constraintlens.api",
+    "constraintlens.application",
+    "constraintlens.adapters.store",
+    "fastapi", "starlette", "uvicorn", "sqlalchemy", "aiosqlite",
 ]

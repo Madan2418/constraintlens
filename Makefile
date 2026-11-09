@@ -1,13 +1,13 @@
 # ConstraintLens developer tasks (ARCHITECTURE.md §19.2).
 # Targets for later phases fail loudly instead of pretending to work.
 
-.PHONY: setup test extraction-eval coverage-domain lint format-check format typecheck imports check integration eval bench demo
+.PHONY: setup test extraction-eval coverage-domain lint format-check format typecheck imports check integration eval bench demo demo-baseline demo-protected serve
 
 setup:
-	uv sync
+	uv sync --all-extras
 
 test:
-	uv run pytest tests/unit tests/contract tests/property \
+	uv run pytest tests/unit tests/contract tests/property tests/e2e \
 		--cov=constraintlens --cov-report=term-missing
 
 # Phase 1 exit criterion: extraction accuracy on the hand-written sets.
@@ -47,5 +47,18 @@ eval:
 bench:
 	@echo "driftchain-bench generator arrives in Phase 6." && exit 1
 
+# Phase 2: the unprotected "before" half of the demo (no Redis server needed).
+demo-baseline:
+	uv run python -m pipelines.baseline.refund_langgraph --mutation SUMMARIZATION_LOSS --hop 2
+	uv run python -m pipelines.baseline.procurement_redis_workers --crash-before-ack
+
+# Phase 3: the same drift, stopped at the tool gate (in-process service).
+demo-protected:
+	uv run python -m pipelines.refund_langgraph --mutation SUMMARIZATION_LOSS --hop 2 --compare
+	uv run python -m pipelines.refund_langgraph --matrix --org-policy
+
+serve:
+	uv run python -m constraintlens.api
+
 demo:
-	@echo "Demo stack arrives in Phase 9." && exit 1
+	@echo "Full demo stack arrives in Phase 9." && exit 1
