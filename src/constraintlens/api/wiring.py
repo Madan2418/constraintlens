@@ -12,8 +12,10 @@ from typing import TYPE_CHECKING
 from constraintlens.adapters.clock import SystemClock
 from constraintlens.adapters.store.sqlite import SQLiteEventStore
 from constraintlens.application.open_trace import OpenTrace
+from constraintlens.application.sweep_transit import SweepTransitLoss
 from constraintlens.application.trace_queries import CloseTrace, ReplayTrace
 from constraintlens.application.verify_checkpoint import VerifyCheckpoint
+from constraintlens.domain.async_guard import GuardConfig
 from constraintlens.domain.checker.pipeline import TieredChecker
 from constraintlens.domain.checker.tier0_integrity import IntegrityTier
 from constraintlens.domain.checker.tier1a_action import ActionTier
@@ -41,6 +43,13 @@ def build_checker(clock: Clock, tiers: list[TierId] | None = None) -> TieredChec
     return TieredChecker([TIER_FACTORIES[n]() for n in TIER_FACTORIES if n in names], clock)
 
 
+def guard_from(settings: Settings) -> GuardConfig:
+    return GuardConfig(
+        dwell_threshold_s=float(settings.dwell_threshold_s),
+        join_timeout_s=settings.join_timeout_s,
+    )
+
+
 def policy_from(settings: Settings) -> Policy:
     return Policy(
         fail_high_risk=settings.fail_high_risk,
@@ -60,6 +69,7 @@ class Container:
     verify: VerifyCheckpoint
     close: CloseTrace
     replay: ReplayTrace
+    sweep: SweepTransitLoss
 
     @classmethod
     def build(
@@ -92,9 +102,13 @@ class Container:
                 policy=policy_from(settings),
                 store_full_text=settings.store_full_text,
                 redact_patterns=settings.redact_pattern_list,
+                guard=guard_from(settings),
             ),
             close=CloseTrace(store=store, clock=clock),
-            replay=ReplayTrace(store=store),
+            replay=ReplayTrace(store=store, guard=guard_from(settings)),
+            sweep=SweepTransitLoss(
+                store=store, clock=clock, consume_timeout_s=settings.consume_timeout_s
+            ),
         )
 
 

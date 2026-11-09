@@ -7,6 +7,9 @@ Run locally::
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
+import logging
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
@@ -23,6 +26,20 @@ if TYPE_CHECKING:
 
     from fastapi.responses import Response
 
+log = logging.getLogger("constraintlens.sweeper")
+
+
+async def run_sweeper(container: Container, interval_s: float) -> None:
+    """Background loop for the transit-loss sweeper (§9.5 d). Never dies on an error."""
+    while True:
+        try:
+            flagged = await container.sweep()
+            for e in flagged:
+                log.warning("transit loss: %s", e.payload["failure"]["detail"])
+        except Exception:  # keep sweeping; the store may come back
+            log.exception("transit-loss sweep failed")
+        await asyncio.sleep(interval_s)
+
 
 def create_app(settings: Settings | None = None, *, container: Container | None = None) -> FastAPI:
     settings = settings or (container.settings if container else Settings())
@@ -30,7 +47,15 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.container = container or await default_container(settings)
+        interval = app.state.container.settings.sweep_interval_s
+        sweeper = (
+            asyncio.create_task(run_sweeper(app.state.container, interval)) if interval else None
+        )
         yield
+        if sweeper is not None:
+            sweeper.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await sweeper
         close = getattr(app.state.container.store, "close", None)
         if close is not None and container is None:
             await close()

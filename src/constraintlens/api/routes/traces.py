@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Header, Query
+from fastapi import APIRouter, Header, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from constraintlens.api.deps import Authenticated, ContainerDep
@@ -25,6 +25,7 @@ from constraintlens.domain.models import (
 )
 
 router = APIRouter(prefix="/v1", dependencies=[Authenticated], tags=["traces"])
+REPLAYED_HEADER = "Idempotent-Replayed"
 
 
 class _Body(BaseModel):
@@ -82,11 +83,16 @@ async def submit_checkpoint(
     trace_id: UUID,
     body: CheckpointRequest,
     c: ContainerDep,
+    response: Response,
     idempotency_key: Annotated[str | None, Header(max_length=200)] = None,
 ) -> Verdict:
     if body.trace_id != trace_id:
         raise InvalidEnvelope("trace_id in the path and the body differ")
-    return await c.verify(body, idempotency_key=idempotency_key)
+    outcome = await c.verify.run(body, idempotency_key=idempotency_key)
+    # §9.6: tells the SDK this is the stored verdict of an identical earlier request,
+    # so a redelivered tool call is not executed a second time (ADR 0006).
+    response.headers[REPLAYED_HEADER] = "true" if outcome.replayed else "false"
+    return outcome.verdict
 
 
 @router.post("/traces/{trace_id}/close")
@@ -138,6 +144,8 @@ async def replay_trace(
                 "checkpoint": i.checkpoint,
                 "original_decision": i.original_decision,
                 "replayed_decision": i.replayed_decision,
+                "original_held": i.original_held,
+                "replayed_held": i.replayed_held,
                 "changed": i.changed,
                 "reason": i.replayed_reason,
             }

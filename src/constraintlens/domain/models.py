@@ -272,6 +272,9 @@ class TransportMeta(_Frozen):
     delivery_count: int = Field(default=1, ge=1)
     enqueued_at: AwareDatetime | None = None
     consumed_at: AwareDatetime | None = None
+    #: At PUBLISH: the queue the envelope is about to enter. Such a publish is expected
+    #: to be consumed within ``consume_timeout``; otherwise it is a loss in transit (§9.5 d).
+    destination: str | None = Field(default=None, min_length=1)
 
 
 class CheckpointRequest(_Model):
@@ -317,6 +320,10 @@ class Verdict(_Frozen):
     latency_ms: dict[str, float]  # per tier
     cache_hit: bool
     regrounded_text: str | None
+    #: Not final: a predecessor hop is missing, so the checkpoint waits (§9.4, ADR 0006).
+    #: A held verdict blocks, is recorded, but is not the idempotent answer for its key;
+    #: the redelivered message is checked again until the gap closes or the join times out.
+    held: bool = False
 
     @model_validator(mode="after")
     def _postconditions(self) -> Verdict:
@@ -330,6 +337,10 @@ class Verdict(_Frozen):
             raise ValueError(f"decision {self.decision} requires a failure or a degraded verdict")
         if self.decision == "RE_GROUND" and not self.regrounded_text:
             raise ValueError("RE_GROUND requires regrounded_text")
+        if self.held and (
+            self.decision != "BLOCK" or not any(f.kind == "MISSING_HOP" for f in self.failures)
+        ):
+            raise ValueError("a held verdict must BLOCK and name a MISSING_HOP failure")
         return self
 
     @property

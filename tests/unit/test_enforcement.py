@@ -114,7 +114,10 @@ def test_degraded_without_named_constraints_is_treated_as_high_risk() -> None:
 def test_extra_rows_not_in_spec_table() -> None:
     assert decision("EXPIRED", "TOOL_CALL", "low") == "BLOCK"
     assert decision("UNSATISFIABLE", "PUBLISH", "low") == "BLOCK"
-    assert decision("MISSING_HOP", "CONSUME", "high") == "BLOCK"
+    # ADR 0006: a gap holds (BLOCK, not final) until resolved or timed out; what then
+    # proceeds is flagged.
+    assert decision("MISSING_HOP", "CONSUME", "high", held=True) == "BLOCK"
+    assert decision("MISSING_HOP", "CONSUME", "high") == "ALLOW_WITH_WARNING"
     assert decision("MISSING_HOP", "CONSUME", "low") == "ALLOW_WITH_WARNING"
     assert decision("OUT_OF_ORDER", "CONSUME", "high") == "ALLOW_WITH_WARNING"
     assert {k for k, _ in DECISION_TABLE} >= {

@@ -1,23 +1,45 @@
-"""QueueTransport contract (§6.3, §9.1, §9.6). Redis Streams joins in Phase 4."""
+"""QueueTransport contract (§6.3, §9.1, §9.6): in-memory fake and Redis Streams."""
 
 from __future__ import annotations
 
+import os
+import uuid
 from typing import TYPE_CHECKING
 
+import fakeredis
 import pytest
 
 from constraintlens.adapters.transport.memory import InMemoryQueue
+from constraintlens.adapters.transport.redis_streams import RedisStreamsTransport
 from constraintlens.domain.ports import QueueTransport
 from tests.factories import make_envelope
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-FACTORIES: list[Callable[[], QueueTransport]] = [InMemoryQueue]
-S, G = "tasks", "workers"
+
+def _memory() -> QueueTransport:
+    return InMemoryQueue()
 
 
-@pytest.fixture(params=FACTORIES, ids=lambda f: f.__name__)
+def _redis_fake() -> QueueTransport:
+    return RedisStreamsTransport(fakeredis.FakeAsyncRedis(decode_responses=True))
+
+
+FACTORIES: list[Callable[[], QueueTransport]] = [_memory, _redis_fake]
+if os.environ.get("REDIS_URL"):  # real Redis joins when available (make integration)
+
+    def _redis_real() -> QueueTransport:
+        from redis.asyncio import Redis
+
+        return RedisStreamsTransport(Redis.from_url(os.environ["REDIS_URL"], decode_responses=True))
+
+    FACTORIES.append(_redis_real)
+
+S, G = f"tasks-{uuid.uuid4().hex[:8]}", "workers"
+
+
+@pytest.fixture(params=FACTORIES, ids=lambda f: f.__name__.lstrip("_"))
 async def queue(request: pytest.FixtureRequest) -> QueueTransport:
     q = request.param()
     await q.ensure_group(S, G)
@@ -79,3 +101,14 @@ async def test_ack_is_idempotent(queue: QueueTransport) -> None:
     (d,) = await queue.consume(S, G, "a")
     await queue.ack(S, G, d.message_id)
     await queue.ack(S, G, d.message_id)
+
+
+async def test_unknown_group_is_a_lookup_error(queue: QueueTransport) -> None:
+    with pytest.raises(LookupError, match="does not exist"):
+        await queue.consume(S, "no-such-group", "c")
+
+
+async def test_enqueued_at_is_set_by_the_transport(queue: QueueTransport) -> None:
+    await queue.publish(S, make_envelope())
+    (d,) = await queue.consume(S, G, "c")
+    assert d.enqueued_at.tzinfo is not None

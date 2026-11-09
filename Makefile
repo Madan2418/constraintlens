@@ -1,7 +1,7 @@
 # ConstraintLens developer tasks (ARCHITECTURE.md §19.2).
 # Targets for later phases fail loudly instead of pretending to work.
 
-.PHONY: setup test extraction-eval coverage-domain lint format-check format typecheck imports check integration eval bench demo demo-baseline demo-protected serve
+.PHONY: setup test extraction-eval coverage-domain lint format-check format typecheck imports check integration eval bench demo demo-baseline demo-protected demo-async serve
 
 setup:
 	uv sync --all-extras
@@ -39,7 +39,8 @@ imports:
 check: lint test coverage-domain
 
 integration:
-	@echo "Integration suite (Redis + SQLite via Docker) arrives in Phases 3-4." && exit 1
+	@test -n "$(REDIS_URL)" || (echo "set REDIS_URL to a running Redis" && exit 1)
+	REDIS_URL=$(REDIS_URL) uv run pytest -m integration tests
 
 eval:
 	@echo "Evaluation harness arrives in Phase 8." && exit 1
@@ -56,6 +57,11 @@ demo-baseline:
 demo-protected:
 	uv run python -m pipelines.refund_langgraph --mutation SUMMARIZATION_LOSS --hop 2 --compare
 	uv run python -m pipelines.refund_langgraph --matrix --org-policy
+
+# Phase 4: redelivery handled once, and a stale constraint failing closed.
+demo-async:
+	uv run python -m pipelines.procurement_redis_workers --crash-before-ack --dwell-minutes 2 --compare
+	uv run python -m pipelines.procurement_redis_workers
 
 serve:
 	uv run python -m constraintlens.api

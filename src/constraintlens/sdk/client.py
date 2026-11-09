@@ -17,6 +17,13 @@
 * Availability: HTTP calls have timeouts and a local circuit breaker. When the service
   cannot answer, ``on_unavailable`` decides per risk class: ``closed`` → a local,
   degraded BLOCK; ``open`` → a local ALLOW_WITH_WARNING (§10.1, §10.2).
+* Redelivery (§9.6, ADR 0006): the service marks a stored verdict as replayed
+  (``Idempotent-Replayed: true``). A replayed *allowing* TOOL_CALL verdict means this
+  exact gated call was already authorized once, by an earlier delivery of the same
+  message. ``guard_tool`` then raises ``DuplicateToolCall`` instead of executing the
+  tool again, unless ``reexecute_redelivered_tools=True``.
+* A *held* verdict (a missing predecessor, §9.4) raises ``CheckpointHeld``: the message
+  must not be acknowledged, so the transport redelivers it and it is checked again.
 """
 
 from __future__ import annotations
@@ -51,6 +58,7 @@ if TYPE_CHECKING:
 
     from constraintlens.domain.models import Checkpoint
 
+REPLAYED_HEADER = "Idempotent-Replayed"
 P = ParamSpec("P")
 R = TypeVar("R")
 M = TypeVar("M")
@@ -66,6 +74,38 @@ class ConstraintViolation(_DomainViolation):
         super().__init__(
             f"{verdict.decision} at {verdict.checkpoint} ({verdict.hop_id}): {verdict.reason}"
         )
+
+
+class CheckpointHeld(ConstraintViolation):
+    """The checkpoint waits for a missing predecessor (§9.4); retry by redelivery, not ack."""
+
+
+class DuplicateToolCall(Exception):
+    """A redelivered message re-issued a tool call that was already authorized (§9.6)."""
+
+    def __init__(self, verdict: Verdict) -> None:
+        self.verdict = verdict
+        super().__init__(
+            f"{verdict.hop_id}: tool call already authorized by verdict {verdict.verdict_id}; "
+            "not executed again"
+        )
+
+
+def raise_if_blocking(verdict: Verdict) -> None:
+    """Raise for verdicts that must stop the caller: held, BLOCK or ESCALATE."""
+    if verdict.held:
+        raise CheckpointHeld(verdict)
+    if verdict.decision in BLOCKING:
+        raise ConstraintViolation(verdict)
+
+
+@dataclass(frozen=True)
+class CheckpointReply:
+    """A verdict plus how it was obtained."""
+
+    verdict: Verdict
+    replayed: bool = False  # the service's stored verdict for an identical request (§9.6)
+    local: bool = False  # a local fail-policy verdict: the service could not answer (§10.1)
 
 
 class ConstraintLensClientError(Exception):
@@ -189,6 +229,7 @@ class ConstraintLens:
         breaker: CircuitBreaker | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
         max_regrounds: int = 2,
+        reexecute_redelivered_tools: bool = False,
     ) -> None:
         headers = {"X-API-Key": api_key} if api_key else {}
         self._http = httpx.AsyncClient(
@@ -198,6 +239,7 @@ class ConstraintLens:
         self.on_unavailable.update(on_unavailable or {})
         self.breaker = breaker or CircuitBreaker()
         self.max_regrounds = max_regrounds
+        self.reexecute_redelivered_tools = reexecute_redelivered_tools
 
     async def aclose(self) -> None:
         await self._http.aclose()
@@ -260,8 +302,14 @@ class ConstraintLens:
         self, request: CheckpointRequest, *, idempotency_key: str | None = None
     ) -> Verdict:
         """Submit a checkpoint. Never raises for outages: falls back per ``on_unavailable``."""
+        return (await self.checkpoint_ex(request, idempotency_key=idempotency_key)).verdict
+
+    async def checkpoint_ex(
+        self, request: CheckpointRequest, *, idempotency_key: str | None = None
+    ) -> CheckpointReply:
+        """``checkpoint`` plus whether the verdict was replayed or decided locally."""
         if not self.breaker.allow():
-            return self._fallback(request, "circuit breaker open")
+            return CheckpointReply(self._fallback(request, "circuit breaker open"), local=True)
         headers = {"Idempotency-Key": idempotency_key} if idempotency_key else {}
         try:
             r = await self._http.post(
@@ -271,12 +319,15 @@ class ConstraintLens:
             )
         except httpx.HTTPError as exc:
             self.breaker.failure()
-            return self._fallback(request, f"{exc.__class__.__name__}: {exc}")
+            why = f"{exc.__class__.__name__}: {exc}"
+            return CheckpointReply(self._fallback(request, why), local=True)
         if r.status_code >= 500:
             self.breaker.failure()
-            return self._fallback(request, f"service returned {r.status_code}")
+            why = f"service returned {r.status_code}"
+            return CheckpointReply(self._fallback(request, why), local=True)
         self.breaker.success()
-        return Verdict.model_validate(self._json_or_raise(r))
+        replayed = r.headers.get(REPLAYED_HEADER, "").lower() == "true"
+        return CheckpointReply(Verdict.model_validate(self._json_or_raise(r)), replayed)
 
     def _json_or_raise(self, r: httpx.Response) -> dict[str, Any]:
         if r.status_code >= 400:
@@ -316,8 +367,11 @@ class ConstraintLens:
     ) -> Verdict:
         return await self._submit("CONSUME", envelope, hop_id, transport_meta=transport_meta)
 
-    async def publish(self, envelope: Envelope) -> Verdict:
-        return await self._submit("PUBLISH", envelope, envelope.hop.hop_id)
+    async def publish(self, envelope: Envelope, *, destination: str | None = None) -> Verdict:
+        """Egress check. ``destination`` names the queue the envelope is about to enter;
+        the service then expects it to be consumed (transit-loss sweeper, §9.5 d)."""
+        meta = TransportMeta(destination=destination) if destination else None
+        return await self._submit("PUBLISH", envelope, envelope.hop.hop_id, transport_meta=meta)
 
     async def tool_call(
         self, envelope: Envelope, action: ProposedAction, *, hop_id: str | None = None
@@ -335,7 +389,22 @@ class ConstraintLens:
         proposed_action: ProposedAction | None = None,
         transport_meta: TransportMeta | None = None,
     ) -> Verdict:
-        return await self.checkpoint(
+        reply = await self._submit_ex(
+            checkpoint, envelope, hop_id,
+            proposed_action=proposed_action, transport_meta=transport_meta,
+        )  # fmt: skip
+        return reply.verdict
+
+    async def _submit_ex(
+        self,
+        checkpoint: Checkpoint,
+        envelope: Envelope,
+        hop_id: str,
+        *,
+        proposed_action: ProposedAction | None = None,
+        transport_meta: TransportMeta | None = None,
+    ) -> CheckpointReply:
+        return await self.checkpoint_ex(
             CheckpointRequest(
                 trace_id=envelope.trace_id,
                 hop_id=hop_id,
@@ -382,9 +451,14 @@ class ConstraintLens:
                     else:
                         call_args[pname] = value
                 action = ProposedAction(tool=name, args=call_args, binding=binding)
-                verdict = await self.tool_call(ctx.envelope, action, hop_id=ctx.next_tool_hop_id())
+                reply = await self._submit_ex(
+                    "TOOL_CALL", ctx.envelope, ctx.next_tool_hop_id(), proposed_action=action
+                )
+                verdict = reply.verdict
                 if verdict.decision in BLOCKING or verdict.decision == "RE_GROUND":
                     raise ConstraintViolation(verdict)
+                if reply.replayed and not self.reexecute_redelivered_tools:
+                    raise DuplicateToolCall(verdict)
                 return await fn(*args, **kwargs)
 
             return wrapper
@@ -410,8 +484,7 @@ class ConstraintLens:
                     raise ConstraintViolation(_local_block(agent_id, "envelope missing"))
                 base_id = make_hop_id(incoming)
                 consumed = await self.consume(incoming, hop_id=base_id)
-                if consumed.decision in BLOCKING:
-                    raise ConstraintViolation(consumed)
+                raise_if_blocking(consumed)
 
                 attempt, current_id, task_message = 0, base_id, message
                 while True:

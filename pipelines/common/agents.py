@@ -60,6 +60,7 @@ class RunResult:
     errors: list[str] = field(default_factory=list)
     blocked: list[tuple[ToolCall, str]] = field(default_factory=list)  # protected runs only
     halted: str | None = None  # a CONSUME / PUBLISH checkpoint stopped the pipeline
+    guard_notes: list[str] = field(default_factory=list)  # protected runs: holds, duplicates
 
     @property
     def silent_violation(self) -> bool:
@@ -113,6 +114,7 @@ def render_report(result: RunResult) -> str:
         lines.append(f"  reason: {reason}")
     if result.halted:
         lines.append(f"Pipeline halted by ConstraintLens: {result.halted}")
+    lines += [f"ConstraintLens: {n}" for n in result.guard_notes]
     lines.append("")
     if result.violations:
         lines.append("Ground truth: VIOLATION of the user's constraint")
@@ -124,6 +126,8 @@ def render_report(result: RunResult) -> str:
         )
     else:
         lines.append("Ground truth: all executed actions respect the user's constraint.")
-        if result.blocked or result.halted:
+        if (result.blocked or result.halted) and result.mutation != "NONE":
             lines.append("ConstraintLens stopped the drifted action before it executed.")
+        elif result.blocked or result.halted:
+            lines.append("ConstraintLens stopped the pipeline before it acted (reason above).")
     return "\n".join(lines)

@@ -7,19 +7,31 @@ control on. Tiers are registered, not hard-coded (open/closed, §5), so Phase 5 
 The checker only *detects*. It returns findings; ``enforcement.decide`` maps them to
 a decision, and the application layer records both (§5 "separation of detection,
 decision, recording").
+
+**Stale constraints (§9.3).** When the async guard marks a constraint stale at
+CONSUME, a *semantic* tier (one with ``semantic = True``: Tier 1c or 2) must re-verify
+it. After the tiers run, each stale constraint is either re-verified (a semantic tier
+scored it: pass), failed (a semantic tier reported a finding on it: ``STALE``), or
+unverifiable (no semantic tier covered it: the verdict is degraded for that
+constraint and the fail policy decides, §10.1).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import TYPE_CHECKING, Protocol
+
+from constraintlens.domain.async_guard import GuardAssessment, GuardConfig, assess
+from constraintlens.domain.models import Failure
+from constraintlens.domain.projections import HopHistory, default_idempotency_key
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from datetime import datetime
     from uuid import UUID
 
-    from constraintlens.domain.models import CheckpointRequest, Constraint, Failure, TierId
+    from constraintlens.domain.models import CheckpointRequest, Constraint, TierId
     from constraintlens.domain.ports import Clock
 
 
@@ -30,6 +42,7 @@ class Finding:
     failure: Failure
     requires_approval: bool = False  # the action is allowed only with approval (§7.8)
     ambiguous: bool = False  # Tier 2 said AMBIGUOUS (§7.4 rule 5)
+    held: bool = False  # a gap the checkpoint must wait out (§9.4, ADR 0006)
 
 
 @dataclass(frozen=True)
@@ -37,9 +50,24 @@ class CheckContext:
     request: CheckpointRequest
     registered: Sequence[Constraint]  # the service's authoritative set for the trace (§7.2)
     now: datetime
+    history: HopHistory = field(default_factory=HopHistory)  # hops seen so far (§9.4)
+    guard: GuardConfig = field(default_factory=GuardConfig)
+    key: str = ""  # idempotency key of this checkpoint; default (trace, hop, checkpoint)
 
     def registered_by_id(self) -> dict[UUID, Constraint]:
         return {c.constraint_id: c for c in self.registered}
+
+    @cached_property
+    def assessment(self) -> GuardAssessment:
+        """Async-guard findings for this checkpoint (computed once, pure)."""
+        r = self.request
+        key = self.key or default_idempotency_key(r.trace_id, r.hop_id, r.checkpoint)
+        return assess(r, self.registered, self.history, self.now, self.guard, key=key)
+
+    @property
+    def stale(self) -> dict[UUID, str]:
+        """Constraints a semantic tier must re-verify (§9.3); semantic tiers route on it."""
+        return self.assessment.stale
 
 
 @dataclass(frozen=True)
@@ -53,6 +81,8 @@ class TierOutcome:
 
 
 class Tier(Protocol):
+    """A checker tier. Tiers that judge entailment set ``semantic = True`` (1c, 2)."""
+
     name: TierId
 
     def applies(self, ctx: CheckContext) -> bool: ...
@@ -70,6 +100,12 @@ class CheckResult:
     degraded: bool
     degraded_constraint_ids: list[UUID]
     cache_hit: bool
+    findings_by_tier: dict[str, list[Finding]] = field(default_factory=dict)
+    notes: list[str] = field(default_factory=list)  # explanations enforcement adds to reasons
+
+    @property
+    def held(self) -> bool:
+        return any(f.held for f in self.findings)
 
 
 class TieredChecker:
@@ -91,8 +127,11 @@ class TieredChecker:
         scores: dict[UUID, float] = {}
         latency: dict[str, float] = {}
         run: list[TierId] = []
-        degraded, cache_hit = False, False
+        degraded, cache_hit, stopped = False, False, False
         degraded_ids: list[UUID] = []
+        by_tier: dict[str, list[Finding]] = {}
+        reverified: set[UUID] = set()
+        reverify_failed: dict[UUID, Finding] = {}
         for tier in self._tiers:
             if not tier.applies(ctx):
                 continue
@@ -100,15 +139,46 @@ class TieredChecker:
             outcome = await tier.run(ctx)
             latency[tier.name] = round((self._clock.monotonic() - start) * 1000, 3)
             run.append(tier.name)
+            by_tier[tier.name] = list(outcome.findings)
             findings += outcome.findings
             scores.update(outcome.scores)
             degraded |= outcome.degraded
             degraded_ids += outcome.degraded_constraint_ids
             cache_hit |= outcome.cache_hit
+            if getattr(tier, "semantic", False):
+                skipped = set(outcome.degraded_constraint_ids)
+                reverified |= {cid for cid in outcome.scores if cid not in skipped}
+                for f in outcome.findings:
+                    if f.failure.constraint_id is not None:
+                        reverify_failed.setdefault(f.failure.constraint_id, f)
             if outcome.terminal:
+                stopped = bool(outcome.findings)
                 break
         if not run:  # pragma: no cover - Tier 0 always applies; defensive postcondition
             raise RuntimeError("no tier applied to the checkpoint")
+
+        notes: list[str] = []
+        if not stopped:  # a terminal failure already decides; staleness is moot
+            for cid, why in ctx.stale.items():
+                if cid in reverify_failed:
+                    failed = reverify_failed[cid].failure
+                    stale = Finding(
+                        Failure(
+                            kind="STALE",
+                            constraint_id=cid,
+                            detail=f"{why}; re-verification failed: {failed.detail}",
+                        )
+                    )
+                    findings.append(stale)
+                    by_tier.setdefault(run[-1], []).append(stale)
+                elif cid in reverified:
+                    notes.append(f"constraint {cid} stale ({why}); re-verified")
+                else:
+                    degraded = True
+                    degraded_ids.append(cid)
+                    notes.append(
+                        f"constraint {cid} stale ({why}); no semantic tier could re-verify it"
+                    )
         return CheckResult(
             tier_used=run[-1],
             tiers_run=run,
@@ -118,4 +188,6 @@ class TieredChecker:
             degraded=degraded,
             degraded_constraint_ids=degraded_ids,
             cache_hit=cache_hit,
+            findings_by_tier=by_tier,
+            notes=notes,
         )

@@ -19,8 +19,9 @@ survey, review decks, diagrams) is in [`documentation/`](documentation/).
 | 1. Constraint layer: extraction, canonicalization, hashing, composition | **done** |
 | 2. Baseline pipelines: unprotected LangGraph refund + Redis-worker procurement | **done** |
 | 3. Service + direct handoff: FastAPI `/v1`, SDK, SQLite event log, Tier 0 + 1a, enforcement | **done** |
-| 4. Async boundary | next |
-| 5–10 | planned |
+| 4. Async boundary: Redis Streams transport, async guard, idempotent verdicts, Redis-worker adapter | **done** |
+| 5. Semantic tiers | next |
+| 6–10 | planned |
 
 Extraction accuracy (rules only, `make extraction-eval`): 1.00 exact match on the
 100-instruction gold set, which is in-sample (same author as the rules), and 0.85 on a
@@ -60,6 +61,25 @@ uv run python -m constraintlens.api      # http://localhost:8000/docs  (CL_* set
 uv run python -m pipelines.refund_langgraph --mutation NEGATION_FLIP --hop 2 --base-url http://localhost:8000
 ```
 
+## The async boundary (Phase 4)
+
+```bash
+make demo-async
+# or:
+uv run python -m pipelines.procurement_redis_workers --crash-before-ack --dwell-minutes 2 --compare
+uv run python -m pipelines.procurement_redis_workers          # 45-minute dwell
+```
+
+The first run compares the baseline with the protected pipeline when a worker dies after
+ordering but before acking. The baseline places the order twice. With ConstraintLens the
+redelivered message gets the stored verdicts, and the re-issued `place_order` is
+recognised as already authorized, so it runs once. The second run keeps the task in the
+queue for 45 minutes. The budget is then stale and must be re-verified by a semantic
+tier (§9.3). Those tiers arrive in Phase 5, so the high-risk purchase fails closed for
+now. The guard also holds checkpoints whose predecessor is missing, flags late
+deliveries, and a sweeper reports messages published but never consumed. See
+`docs/decisions/0006-async-boundary.md`.
+
 ## Quick start (development)
 
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
@@ -81,14 +101,15 @@ src/constraintlens/
   application/   use cases (Phase 1+)
   adapters/      port implementations; fakes used by tests live here too
   api/           FastAPI delivery layer; wiring.py is the composition root
-  sdk/           client used by pipelines: guard_hop, guard_tool, circuit breaker
+  sdk/           client used by pipelines: guard_hop, guard_tool, GuardedWorker, breaker
   config.py      CL_* environment settings (§18)
 pipelines/
   common/        scripted agents, scenarios, oracle (never imports ConstraintLens)
   baseline/      unprotected LangGraph and Redis-worker pipelines
-  refund_langgraph.py   the same refund pipeline, protected by the SDK
+  refund_langgraph.py           the refund pipeline, protected by the SDK
+  procurement_redis_workers.py  the Redis-worker pipeline, protected (GuardedWorker)
 tests/
-  unit/ contract/ property/   (integration/ and e2e/ arrive with Phases 3–4)
+  unit/ contract/ property/ e2e/   (e2e includes the failure-injection suite)
 docs/decisions/  architecture decision records
 ```
 

@@ -213,9 +213,9 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
       <h1>ConstraintLens build log</h1>
       <p class="lede">A runtime framework that detects semantic constraint drift in asynchronous multi-agent AI systems. It checks that a constraint such as "refund up to $100" still means the same thing after each agent rewrites the task, and it blocks the tool call when the meaning has been lost.</p>
       <div class="status-bar">
-        <span class="pill ok"><span class="dot"></span>Phases 0–3 complete · Phase 4 next</span>
-        <span class="pill neutral">Sessions logged: 5</span>
-        <span class="pill neutral">Last updated 2026-11-07</span>
+        <span class="pill ok"><span class="dot"></span>Phases 0–4 complete · Phase 5 next</span>
+        <span class="pill neutral">Sessions logged: 6</span>
+        <span class="pill neutral">Last updated 2026-11-09</span>
         <span class="pill neutral">Python 3.11+ · FastAPI · React</span>
       </div>
       <div class="grid3">
@@ -439,8 +439,8 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
         <div class="phase"><span class="num">P1</span><div><h4>Constraint layer</h4><p>Rule-based and LLM extraction, canonicalization, SHA-256 hashing, composition (most-restrictive-wins), property tests.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P2</span><div><h4>Baseline pipelines</h4><p>Unprotected LangGraph refund pipeline and Redis-worker pipeline that reproduce the silent violation.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P3</span><div><h4>Service and direct handoff</h4><p>FastAPI <code>/v1</code>, SDK, SQLite event store, Tier 0 and 1a, enforcement table, recorder.</p></div><span class="pill ok">done</span></div>
-        <div class="phase"><span class="num">P4</span><div><h4>Async boundary</h4><p>Redis Streams transport, async guard (staleness, reordering, loss, redelivery), idempotent verdicts.</p></div><span class="pill warn">next</span></div>
-        <div class="phase"><span class="num">P5</span><div><h4>Semantic tiers</h4><p>T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing, degraded path.</p></div><span class="pill neutral">planned</span></div>
+        <div class="phase"><span class="num">P4</span><div><h4>Async boundary</h4><p>Redis Streams transport, async guard (staleness, reordering, loss, redelivery), idempotent verdicts.</p></div><span class="pill ok">done</span></div>
+        <div class="phase"><span class="num">P5</span><div><h4>Semantic tiers</h4><p>T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing, degraded path.</p></div><span class="pill warn">next</span></div>
         <div class="phase"><span class="num">P6</span><div><h4>driftchain-bench</h4><p>6 scenarios × 9 operators, async profiles, seeded generator, JSONL schema, dataset card.</p></div><span class="pill neutral">planned</span></div>
         <div class="phase"><span class="num">P7</span><div><h4>Attribution</h4><p>DAG edge deltas, fan-in, async-cause classification, replay endpoint.</p></div><span class="pill neutral">planned</span></div>
         <div class="phase"><span class="num">P8</span><div><h4>Evaluation</h4><p>B0–B3, C1–C3 and embedding-only configs, threshold tuning on val, bootstrap CIs, <code>make eval</code>.</p></div><span class="pill neutral">planned</span></div>
@@ -453,7 +453,7 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
           <span class="pill ok">Python 3.13 ✓</span><span class="pill ok">Node 24 / npm 11 ✓</span><span class="pill ok">git ✓</span>
           <span class="pill ok">uv 0.13.7 ✓</span><span class="pill bad">make missing (Windows)</span><span class="pill bad">Docker missing</span><span class="pill bad">Redis missing</span>
         </div>
-        <p class="small">Phases 0 to 3 run without Docker or Redis, because the in-memory fakes cover the tests. uv is needed from Phase 0, and Redis or Docker from Phase 4. The judge API key is only needed in Phase 5 (CI never calls it).</p>
+        <p class="small">Phases 0 to 4 run here without Docker or Redis: the in-memory fakes and fakeredis cover the tests, and the real-Redis tests run in the CI integration job (Redis 7 service container). The judge API key is only needed in Phase 5 (CI never calls it). Windows Application Control blocks some fresh native wheels here, so hypothesis is pinned to pure-Python releases and SQLAlchemy runs without its C extension locally.</p>
       </div>
     </section>
 
@@ -529,6 +529,23 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
           <li><b>Known gap, kept visible</b>: SCOPE_WIDEN is not caught. "Refund this customer" names no order, so the subject is <code>*</code>. This needs the Phase 5 semantic tiers.</li>
           <li>Decisions recorded in ADR 0005: tool bindings, BLOCK vs ESCALATE (escalate only with an approval route), sub-hop and retry ids, extra table rows, replay over redacted text. A 5th import contract keeps server code out of the SDK.</li>
           <li>Totals: 430 tests pass (1 real-Redis test skipped), 98% line coverage, ruff, mypy and import-linter (5/5) clean. Measured on 7 local checks: T0 p95 0.44 ms, T1a 0.09 ms (budget &lt; 5 ms); proper latency evaluation is Phase 8. Not committed yet.</li>
+        </ul>
+      </div>
+      <div class="session" style="margin-top:22px">
+        <div class="meta"><h3>Session 6</h3><span class="pill neutral">2026-11-09</span><span class="pill ok">Phase 4 done</span><span class="pill ok">pushed</span></div>
+        <ul>
+          <li><b>Commits</b>: Phases 2–3 committed on their own first (<code>311e54c</code>), then Phase 4. Both pushed to <code>phase-0-1-foundations</code>. The build log is republished with Sessions 3–6.</li>
+          <li><b>Environment fix</b>: Windows Application Control started blocking two fresh native DLLs (SQLAlchemy's Cython extension, hypothesis 6.170's Rust core). hypothesis is pinned below 6.156 (pure-Python wheels); SQLAlchemy is reinstalled locally without its C extension. The lockfile otherwise is unchanged.</li>
+          <li><b>Async guard</b> (<code>domain/async_guard.py</code>, inside Tier 0 as §7.4 lists): staleness (age over <code>max_age</code> or queue dwell over 300 s), gaps (a parent never observed, or a <code>hop_seq</code> skip), and inversions (a descendant already consumed → <code>OUT_OF_ORDER</code>, flagged and still checked by later tiers). The guard reasons over <code>HopHistory</code>, a projection of the recorded checkpoints, so live checks and replay agree.</li>
+          <li><b>Held checkpoints</b>: with a high-risk constraint, a gap holds the CONSUME. The verdict is a <code>BLOCK</code> with <code>held=true</code>; it is recorded but is not the idempotent answer. The message stays unacked, and the redelivery is checked again until the parent appears or <code>CL_JOIN_TIMEOUT_S</code> passes since the first hold (service clock, so a producer cannot backdate past it).</li>
+          <li><b>Staleness needs a semantic tier</b>: after the tiers run, each stale constraint is re-verified (a <code>semantic</code> tier scored it), failed (<code>STALE</code>), or unverifiable (degraded → fail policy). Until Phase 5 ships 1c/2, a stale high-risk constraint fails closed.</li>
+          <li><b>Redelivery fixed end to end</b>: a stored verdict comes back with <code>Idempotent-Replayed: true</code>, and a replayed allowing TOOL_CALL raises <code>DuplicateToolCall</code> instead of running the tool. The baseline places the laptop order twice; the protected pipeline places it once. A duplicate only counts as a redelivery if it is the same request (constraints, digest, hop, action). A tampered or changed duplicate is checked fresh and recorded as a non-final conflict.</li>
+          <li><b>Loss in transit (§9.5 d)</b>: PUBLISH names its destination queue. A background sweeper flags any publish not consumed within <code>CL_CONSUME_TIMEOUT_S</code>, once, and rebuilds its state from the log after a restart.</li>
+          <li><b>Redis Streams + worker adapter</b>: <code>RedisStreamsTransport</code> (with an optional virtual clock that stamps stream ids, simulation only) and <code>sdk.GuardedWorker</code>: CONSUME with transport metadata, the handler under the tool gate, PUBLISH with re-grounding, then ack. It does not ack a held CONSUME or a local fail-closed verdict (service down), so outages block without dropping tasks.</li>
+          <li><b>Protected procurement pipeline</b> (<code>pipelines/procurement_redis_workers.py</code>): blocks every baseline violation across 41 mutation × hop × org-policy cases with no false blocks; a 45-minute dwell halts the purchase at CONSUME (stale, fails closed); <code>make demo-async</code>.</li>
+          <li><b>Exit criteria met</b>: the Hypothesis properties pass (verdicts idempotent under any redelivery order, concurrent duplicates included; the reordering frontier never moves backwards; replay reproduces every decision, holds included). The property test also found a real bug: the root hop was not known as observed. The failure-injection suite passes: service unreachable, store outage, Redis outage mid-trace, tampered or stripped envelope, lost message, reordering, concurrent duplicates.</li>
+          <li>ADR 0006 records the decisions. The CI workflow gains an integration job with a Redis 7 service container, and <code>make integration</code> now runs the real-Redis tests.</li>
+          <li>Totals: 536 tests pass (2 real-Redis tests skipped locally), domain coverage 98%, ruff, mypy and import-linter (5/5) clean. Still open: judge-timeout injection (needs the Phase 5 judge); a store <em>append</em> failure is still acked as a degraded block.</li>
         </ul>
       </div>
     </section>

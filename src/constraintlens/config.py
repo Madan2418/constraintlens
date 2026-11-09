@@ -39,6 +39,11 @@ class Settings(BaseSettings):
     dwell_threshold_s: int = Field(default=300, gt=0)
     default_max_age_s: int = Field(default=3600, gt=0)
 
+    # Async boundary (§9.4, §9.5, ADR 0006)
+    join_timeout_s: float = Field(default=60.0, gt=0)  # how long a gap holds a checkpoint
+    consume_timeout_s: float = Field(default=900.0, gt=0)  # publish never consumed -> loss
+    sweep_interval_s: float = Field(default=30.0, ge=0)  # transit-loss sweeper; 0 = off
+
     # Tiers
     enable_tier_1c: bool = True
     enable_tier_2: bool = True

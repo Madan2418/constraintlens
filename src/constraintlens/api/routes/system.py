@@ -28,10 +28,16 @@ async def health(c: ContainerDep) -> dict[str, Any]:
         "dependencies": {
             "store": store,
             "judge": "configured" if c.judge is not None else "not configured (rules only)",
-            "redis": "not used by the service yet (Phase 4)",
+            "redis": "not used by the service: pipelines reach it through the SDK (§6.1)",
             "models": "none loaded (Tier 1c arrives in Phase 5)",
         },
         "tiers": list(TIER_FACTORIES),
+        "async_guard": {
+            "dwell_threshold_s": c.settings.dwell_threshold_s,
+            "join_timeout_s": c.settings.join_timeout_s,
+            "consume_timeout_s": c.settings.consume_timeout_s,
+            "sweeper": "on" if c.settings.sweep_interval_s else "off",
+        },
     }
 
 

@@ -7,8 +7,9 @@ Microsecond checks that need no semantics, against the service's registered set:
   content no longer matches its hash, or the envelope digest is wrong;
 * expired: ``now > expiry`` for a registered constraint.
 
-Any failure is terminal (§7.4 rule 1). Ordering (OUT_OF_ORDER / MISSING_HOP) and
-staleness belong to the async guard (Phase 4).
+Any of these failures is terminal (§7.4 rule 1). Tier 0 also reports the async
+guard's findings at CONSUME (``OUT_OF_ORDER``, ``MISSING_HOP``; §7.4 "hop_seq valid",
+§9.4). Staleness is enforced by the checker after the semantic tiers (§9.3).
 """
 
 from __future__ import annotations
@@ -84,4 +85,14 @@ class IntegrityTier:
                         )
                     )
                 )
-        return TierOutcome(findings=findings, terminal=bool(findings))
+        if findings:  # integrity failures are terminal (§7.4 rule 1)
+            return TierOutcome(findings=findings, terminal=True)
+
+        # Async guard (§9.4). A held gap is terminal: nothing else can be decided before
+        # the predecessor arrives. OUT_OF_ORDER and a released gap are flagged, and the
+        # checkpoint is still checked by the later tiers ("checked, not trusted").
+        guard = ctx.assessment
+        async_findings = [
+            Finding(f, held=guard.held and f.kind == "MISSING_HOP") for f in guard.failures
+        ]
+        return TierOutcome(findings=async_findings, terminal=guard.held)

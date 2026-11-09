@@ -9,6 +9,9 @@ outranks ESCALATE, because approval cannot cure a hard-cap breach.
 
 Approval-threshold breaches become ESCALATE only when an approval route is configured
 (``Policy.escalate_approvals``). Otherwise they BLOCK, as in the worked example (§2.1).
+
+A *held* finding (a gap at CONSUME, §9.4) always BLOCKs; the verdict is marked held and
+is not final (ADR 0006).
 """
 
 from __future__ import annotations
@@ -58,8 +61,10 @@ DECISION_TABLE: dict[tuple[FailureKind, bool], Row] = {
     ("EXPIRED", False): ("BLOCK", "BLOCK"),
     ("UNSATISFIABLE", True): ("BLOCK", "BLOCK"),
     ("UNSATISFIABLE", False): ("BLOCK", "BLOCK"),
-    ("MISSING_HOP", True): ("BLOCK", "ALLOW_WITH_WARNING"),  # §9.4: high risk blocks
-    ("MISSING_HOP", False): ("BLOCK", "ALLOW_WITH_WARNING"),
+    # §9.4: a gap first *holds* a high-risk checkpoint (Finding.held -> BLOCK, not final).
+    # The row covers what proceeds: a join that timed out, or low-risk constraints only.
+    ("MISSING_HOP", True): ("ALLOW_WITH_WARNING", "ALLOW_WITH_WARNING"),  # ADR 0006
+    ("MISSING_HOP", False): ("ALLOW_WITH_WARNING", "ALLOW_WITH_WARNING"),
     ("OUT_OF_ORDER", True): ("ALLOW_WITH_WARNING", "ALLOW_WITH_WARNING"),  # §9.4: checked, flagged
     ("OUT_OF_ORDER", False): ("ALLOW_WITH_WARNING", "ALLOW_WITH_WARNING"),
 }
@@ -100,6 +105,8 @@ def decide_finding(
 ) -> Decision:
     f = finding.failure
     risk = _risk_of(f.constraint_id, registered)
+    if finding.held:
+        return "BLOCK"  # wait for the missing predecessor (§9.4)
     if finding.ambiguous:
         return _pick(AMBIGUOUS_ROW, risk)
     decision = _pick(DECISION_TABLE[(f.kind, checkpoint in _AT_GATE)], risk)
@@ -135,6 +142,7 @@ def decide(
             decision = d
         reasons.append(f"{finding.failure.kind}: {finding.failure.detail}")
 
+    reasons += result.notes
     if result.degraded:
         for cid in result.degraded_constraint_ids or [None]:  # type: ignore[list-item]
             mode = policy.fail_high_risk if _risk_of(cid, by_id) == "high" else policy.fail_low_risk

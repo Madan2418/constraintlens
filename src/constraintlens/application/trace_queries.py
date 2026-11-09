@@ -4,6 +4,11 @@ All of them are projections of the event log. ``ReplayTrace`` re-runs the checke
 enforcement over the stored checkpoint requests with different parameters and writes
 nothing (§11.1 "no side effects"). It is how thresholds and ablations are explored
 offline, and how "the event log is replayable" is proven (§23 Phase 3).
+
+Replay folds the log incrementally: each checkpoint is re-checked against the state
+*as it was when it arrived* (registered constraints, and the hop history the async
+guard reasons over), at its original receive time. So ordering, gap and hold findings
+replay exactly as they were issued.
 """
 
 from __future__ import annotations
@@ -12,10 +17,11 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from constraintlens.domain.async_guard import GuardConfig
 from constraintlens.domain.checker.pipeline import CheckContext
 from constraintlens.domain.enforcement import Policy, decide
 from constraintlens.domain.errors import UnknownTrace
-from constraintlens.domain.models import CheckpointRequest, EventDraft
+from constraintlens.domain.models import CheckpointRequest, EventDraft, Verdict
 from constraintlens.domain.projections import TraceState, base_hop_id, fold
 
 if TYPE_CHECKING:
@@ -61,19 +67,24 @@ def summarise(state: TraceState) -> dict[str, Any]:
         "status": state.status,
         "outcome": state.outcome,
         "constraints": [c.model_dump(mode="json") for c in state.constraints],
-        "verdicts": [
-            {
-                "hop_id": v.hop_id,
-                "checkpoint": v.checkpoint,
-                "decision": v.decision,
-                "tier_used": v.tier_used,
-                "degraded": v.degraded,
-                "failures": [f.model_dump(mode="json") for f in v.failures],
-                "verdict_id": str(v.verdict_id),
-            }
-            for v in state.verdicts
-        ],
+        "verdicts": [_verdict_row(v) for v in state.verdicts],
+        "held": [_verdict_row(v) for v in state.held],  # non-final (§9.4)
+        "conflicts": [_verdict_row(v) for v in state.conflicts],  # non-final (ADR 0006)
+        "transit_losses": state.transit_losses,  # §9.5 (d)
         "last_event_id": state.last_event_id,
+    }
+
+
+def _verdict_row(v: Verdict) -> dict[str, Any]:
+    return {
+        "hop_id": v.hop_id,
+        "checkpoint": v.checkpoint,
+        "decision": v.decision,
+        "tier_used": v.tier_used,
+        "degraded": v.degraded,
+        "held": v.held,
+        "failures": [f.model_dump(mode="json") for f in v.failures],
+        "verdict_id": str(v.verdict_id),
     }
 
 
@@ -84,55 +95,75 @@ class ReplayItem:
     original_decision: str
     replayed_decision: str
     replayed_reason: str
+    original_held: bool = False
+    replayed_held: bool = False
 
     @property
     def changed(self) -> bool:
-        return self.original_decision != self.replayed_decision
+        return (self.original_decision, self.original_held) != (
+            self.replayed_decision,
+            self.replayed_held,
+        )
 
 
 class ReplayTrace:
     """Recompute every verdict of a trace from its events. Writes nothing."""
 
-    def __init__(self, *, store: EventStore) -> None:
+    def __init__(self, *, store: EventStore, guard: GuardConfig | None = None) -> None:
         self._store = store
+        self._guard = guard or GuardConfig()
 
     async def __call__(
-        self, trace_id: UUID, *, checker: TieredChecker, policy: Policy
+        self,
+        trace_id: UUID,
+        *,
+        checker: TieredChecker,
+        policy: Policy,
+        guard: GuardConfig | None = None,
     ) -> list[ReplayItem]:
         events = await self._store.read_trace(trace_id)
-        state = fold(trace_id, events)
-        if state.status == "unknown":
+        final = fold(trace_id, events)
+        if final.status == "unknown":
             raise UnknownTrace(f"trace {trace_id} was never opened")
+        guard = guard or self._guard
+        at_the_time = TraceState(trace_id=trace_id)
         regrounds: Counter[str] = Counter()
         items: list[ReplayItem] = []
         for event in events:
-            if event.type != "CHECKPOINT_RECEIVED":
-                continue
-            key = event.payload["idempotency_key"]
-            original = state.verdict_by_key.get(key)
-            request = CheckpointRequest.model_validate(event.payload["request"])
-            # Replay at the time the checkpoint was originally received: deterministic.
-            result = await checker.check(
-                CheckContext(request, state.constraints, event.occurred_at)
-            )
-            enf = decide(
-                result,
-                request.checkpoint,
-                state.constraints,
-                policy,
-                regrounds_so_far=regrounds[base_hop_id(request.hop_id)],
-            )
-            if enf.decision == "RE_GROUND":
-                regrounds[base_hop_id(request.hop_id)] += 1
-            items.append(
-                ReplayItem(
-                    hop_id=request.hop_id,
-                    checkpoint=request.checkpoint,
-                    original_decision=original.decision if original else "UNRECORDED",
-                    replayed_decision=enf.decision,
-                    replayed_reason=enf.reason,
+            if event.type == "CHECKPOINT_RECEIVED":
+                original = final.verdict_by_checkpoint_event.get(event.event_id)
+                request = CheckpointRequest.model_validate(event.payload["request"])
+                # The state and time the checkpoint originally saw: deterministic.
+                result = await checker.check(
+                    CheckContext(
+                        request,
+                        at_the_time.constraints,
+                        event.occurred_at,
+                        history=at_the_time.history,
+                        guard=guard,
+                    )
                 )
-            )
+                enf = decide(
+                    result,
+                    request.checkpoint,
+                    at_the_time.constraints,
+                    policy,
+                    regrounds_so_far=regrounds[base_hop_id(request.hop_id)],
+                )
+                if enf.decision == "RE_GROUND":
+                    regrounds[base_hop_id(request.hop_id)] += 1
+                items.append(
+                    ReplayItem(
+                        hop_id=request.hop_id,
+                        checkpoint=request.checkpoint,
+                        original_decision=original.decision if original else "UNRECORDED",
+                        replayed_decision=enf.decision,
+                        replayed_reason=enf.reason,
+                        original_held=bool(original and original.held),
+                        replayed_held=result.held,
+                    )
+                )
+            at_the_time.apply(event)
         return items
 
 
@@ -140,7 +171,7 @@ async def metrics(store: EventStore) -> dict[str, Any]:
     """Aggregates over all verdicts (§11.1 ``GET /v1/metrics``)."""
     decisions: Counter[str] = Counter()
     tiers: Counter[str] = Counter()
-    degraded = cache_hits = total = redeliveries = 0
+    degraded = cache_hits = total = redeliveries = held = transit_losses = 0
     latencies: dict[str, list[float]] = {}
     for e in await store.read_after(0):
         if e.type == "VERDICT_ISSUED":
@@ -154,6 +185,10 @@ async def metrics(store: EventStore) -> dict[str, Any]:
                 latencies.setdefault(tier, []).append(float(ms))
         elif e.type == "WARNING" and e.payload.get("redelivery"):
             redeliveries += 1
+        elif e.type == "WARNING" and e.payload.get("held"):
+            held += 1
+        elif e.type == "WARNING" and e.payload.get("transit_loss"):
+            transit_losses += 1
     return {
         "verdicts": total,
         "decisions": dict(decisions),
@@ -161,6 +196,8 @@ async def metrics(store: EventStore) -> dict[str, Any]:
         "degraded_rate": round(degraded / total, 4) if total else 0.0,
         "cache_hit_rate": round(cache_hits / total, 4) if total else 0.0,
         "redeliveries": redeliveries,
+        "held": held,
+        "transit_losses": transit_losses,
         "latency_ms": {t: _percentiles(v) for t, v in sorted(latencies.items())},
     }
 
