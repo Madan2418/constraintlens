@@ -8,7 +8,6 @@ from fastapi import APIRouter
 
 from constraintlens import __version__
 from constraintlens.api.deps import Authenticated, ContainerDep
-from constraintlens.api.wiring import TIER_FACTORIES
 from constraintlens.application.trace_queries import metrics as compute_metrics
 
 router = APIRouter(prefix="/v1", tags=["system"])
@@ -27,11 +26,20 @@ async def health(c: ContainerDep) -> dict[str, Any]:
         "version": __version__,
         "dependencies": {
             "store": store,
-            "judge": "configured" if c.judge is not None else "not configured (rules only)",
+            "judge": (
+                f"configured ({c.judge.model_id}, prompt {c.judge.prompt_version})"
+                if c.judge is not None
+                else "not configured: rules-only extraction, Tier 2 off"
+            ),
+            "judge_cache": "on" if c.tier_deps.judge_cache is not None else "off",
             "redis": "not used by the service: pipelines reach it through the SDK (§6.1)",
-            "models": "none loaded (Tier 1c arrives in Phase 5)",
+            "models": {
+                "nli": "loaded" if c.tier_deps.nli is not None else "not loaded: Tier 1c off",
+                "embedder": "loaded" if c.tier_deps.embedder is not None else "not loaded",
+            },
         },
-        "tiers": list(TIER_FACTORIES),
+        "tiers": c.verify.checker.tier_names,
+        "thresholds": {"theta_low": c.tier_deps.theta_low, "theta_high": c.tier_deps.theta_high},
         "async_guard": {
             "dwell_threshold_s": c.settings.dwell_threshold_s,
             "join_timeout_s": c.settings.join_timeout_s,

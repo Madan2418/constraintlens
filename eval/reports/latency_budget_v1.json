@@ -1,0 +1,62 @@
+{
+  "tiers": {
+    "T0": {
+      "n": 630,
+      "p50": 0.047,
+      "p95": 0.095,
+      "p99": 0.156,
+      "budget_p95": 5.0,
+      "within": true,
+      "note": ""
+    },
+    "T1a": {
+      "n": 210,
+      "p50": 0.03,
+      "p95": 0.054,
+      "p99": 0.088,
+      "budget_p95": 5.0,
+      "within": true,
+      "note": ""
+    },
+    "T1b": {
+      "n": 330,
+      "p50": 0.032,
+      "p95": 0.042,
+      "p99": 0.069,
+      "budget_p95": 5.0,
+      "within": true,
+      "note": ""
+    },
+    "T1c": {
+      "n": 150,
+      "p50": 0.125,
+      "p95": 0.37,
+      "p99": 1.433,
+      "budget_p95": 100.0,
+      "within": true,
+      "note": "fake model: routing overhead only"
+    },
+    "T2": {
+      "n": 150,
+      "p50": 0.048,
+      "p95": 0.09,
+      "p99": 0.123,
+      "budget_p95": 3000.0,
+      "within": true,
+      "note": "fake model: routing overhead only"
+    }
+  },
+  "end_to_end_no_escalation": {
+    "n": 630,
+    "p50": 5.022,
+    "p95": 6.732,
+    "budget": 150.0,
+    "within": true
+  },
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "measured_at": "2026-11-09T16:52:03+00:00",
+    "iterations": 30
+  }
+}

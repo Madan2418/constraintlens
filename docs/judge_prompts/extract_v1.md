@@ -3,7 +3,7 @@
 - **Used by:** `Judge.extract_constraints` (ARCHITECTURE.md §7.1 step 2)
 - **Output contract:** validated by `constraintlens.domain.extraction.parse_llm_output`.
   Invalid output gets one repair call carrying the validation error, then it is rejected.
-- **Adapters:** real providers load this file in Phase 5. `ScriptedJudge` returns
+- **Adapters:** `AnthropicJudge` and `OpenAICompatJudge` load this file (ADR 0007). `ScriptedJudge` returns
   scripted strings and does not read it.
 
 ---

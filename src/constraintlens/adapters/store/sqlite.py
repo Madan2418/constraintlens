@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
@@ -34,11 +34,12 @@ from sqlalchemy import (
     select,
     update,
 )
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from constraintlens.domain.errors import DependencyUnavailable
-from constraintlens.domain.models import Event
+from constraintlens.domain.models import Event, JudgeResult
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -96,6 +97,20 @@ verdicts = Table(
 )
 PROJECTIONS = (traces, constraints, verdicts)
 
+#: Tier 2 verdict cache (§7.4, §12.2). Not a projection: never rebuilt from events.
+judge_cache = Table(
+    "judge_cache",
+    metadata,
+    Column("cache_key", String(64), primary_key=True),
+    Column("verdict", String, nullable=False),
+    Column("reason", Text, nullable=False),
+    Column("confidence", Text, nullable=False),
+    Column("evidence", Text, nullable=True),
+    Column("model", String, nullable=False),
+    Column("prompt_version", String, nullable=False),
+    Column("created_at", String, nullable=False),
+)
+
 
 def async_url(url: str) -> str:
     """``sqlite:///x.db`` (§18 style) → ``sqlite+aiosqlite:///x.db``."""
@@ -128,6 +143,10 @@ class SQLiteEventStore:
 
     async def close(self) -> None:
         await self._engine.dispose()
+
+    def judge_cache(self) -> SQLiteJudgeCache:
+        """The Tier 2 cache in the same database file (§7.4 "backed by the EventStore")."""
+        return SQLiteJudgeCache(self)
 
     # ------------------------------------------------------------------ writes
 
@@ -278,3 +297,44 @@ async def _project(conn: AsyncConnection, e: Event) -> None:
         await conn.execute(
             insert(traces).values(trace_id=tid, opened_at=at, status="refused", outcome="REFUSED")
         )
+
+
+class SQLiteJudgeCache:
+    """JudgeCache on the ``judge_cache`` table, sharing the event store's engine."""
+
+    def __init__(self, store: SQLiteEventStore) -> None:
+        self._store = store
+
+    async def get(self, key: str) -> JudgeResult | None:
+        await self._store._ensure_ready()
+        async with self._store._engine.connect() as conn:
+            row = (
+                await conn.execute(select(judge_cache).where(judge_cache.c.cache_key == key))
+            ).first()
+        if row is None:
+            return None
+        return JudgeResult(
+            verdict=row.verdict,
+            reason=row.reason,
+            confidence=float(row.confidence),
+            evidence=row.evidence,
+        )
+
+    async def put(self, key: str, result: JudgeResult, *, model: str, prompt_version: str) -> None:
+        await self._store._ensure_ready()
+        stmt = (
+            sqlite_insert(judge_cache)
+            .values(
+                cache_key=key,
+                verdict=result.verdict,
+                reason=result.reason,
+                confidence=repr(result.confidence),
+                evidence=result.evidence,
+                model=model,
+                prompt_version=prompt_version,
+                created_at=datetime.now(UTC).isoformat(),
+            )
+            .on_conflict_do_nothing(index_elements=["cache_key"])  # first answer wins
+        )
+        async with self._store._write_lock, self._store._engine.begin() as conn:
+            await conn.execute(stmt)

@@ -130,7 +130,9 @@ async def replay_trace(
                 s.escalate_approvals if body.escalate_approvals is None else body.escalate_approvals
             ),
         )
-        checker = build_checker(c.clock, body.tiers)
+        checker = (
+            build_checker(c.clock, body.tiers, c.replay_deps) if body.tiers else c.replay_checker
+        )
     except ValueError as exc:
         raise InvalidEnvelope(str(exc)) from exc
     items = await c.replay(trace_id, checker=checker, policy=policy)

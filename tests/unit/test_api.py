@@ -112,7 +112,7 @@ async def test_problem_details() -> None:
 
         bad_tier = await c.post(f"/v1/traces/{tid}/replay", json={"tiers": ["T2"]})
         assert bad_tier.status_code == 400
-        assert "unavailable tiers" in bad_tier.json()["detail"]
+        assert "not available" in bad_tier.json()["detail"]
 
         await c.post(f"/v1/traces/{tid}/close")
         closed = await c.post(f"/v1/traces/{tid}/checkpoints", json=tool_body(env, 1, hop="h4.t1"))

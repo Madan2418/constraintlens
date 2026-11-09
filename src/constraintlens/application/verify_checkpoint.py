@@ -116,6 +116,10 @@ class VerifyCheckpoint:
         self._guard = guard or GuardConfig()
         self._locks: dict[str, asyncio.Lock] = {}
 
+    @property
+    def checker(self) -> TieredChecker:
+        return self._checker
+
     async def __call__(
         self, request: CheckpointRequest, *, idempotency_key: str | None = None
     ) -> Verdict:
@@ -245,6 +249,8 @@ class VerifyCheckpoint:
                     },
                 )
             )
+        for failure in result.judge_failures:  # §8.4, §10.1: the degraded path is visible
+            drafts.append(ev("JUDGE_FAILED", {"tier": "T2", "detail": failure}))
         verdict_json = verdict.model_dump(mode="json")
         if conflict_with is not None:
             # Same key, different request: not a redelivery (ADR 0006). Checked afresh,

@@ -123,6 +123,7 @@ async def test_cli(capsys: pytest.CaptureFixture[str]) -> None:
     )  # fmt: skip
     out = capsys.readouterr().out
     assert "Pipeline: no error, no warning" in out  # baseline half
-    assert "BLOCKED by ConstraintLens" in out  # protected half
+    assert "Pipeline halted by ConstraintLens" in out  # protected half: stopped at triage (T1b)
+    assert "limit 100 USD missing" in out
     await protected._main(argparse.Namespace(matrix=True, org_policy=True, base_url=None))
     assert "CONSTRAINT_DROP_ONE" in capsys.readouterr().out

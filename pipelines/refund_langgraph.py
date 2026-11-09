@@ -86,7 +86,10 @@ def build_graph(
     mutated_hop: int | None,
     clock: VirtualClock,
     ledger: ToolLedger,
+    log: list[HopRecord] | None = None,
 ) -> Any:
+    """``log`` receives every hop record as it happens, so a halted run still shows the
+    hops (and re-grounded attempts) that ran."""
     adapter = LangGraphStateAdapter()
 
     def make_agent(hop: int, *, dwell_s: float = 0.0, final: bool = False) -> Any:
@@ -106,6 +109,8 @@ def build_graph(
                 with contextlib.suppress(ConstraintViolation):
                     await scenario.act(facts, GuardedTools(cl, scenario, ledger, hop, role))
             record = HopRecord(hop, role, text, clock.now(), queue_dwell_s=dwell_s, mutated=drifted)
+            if log is not None:
+                log.append(record)
             return {**state, "text": text, "hops": [*state["hops"], record]}
 
         return agent
@@ -147,20 +152,19 @@ async def run(
         mutated_hop=mutated_hop if mutation != "NONE" else None,
         org_policy=org_policy,
     )
+    log: list[HopRecord] = []
     app = build_graph(
         cl, scenario=scenario, mutation=mutation, mutated_hop=mutated_hop, clock=clock,
-        ledger=ledger,
+        ledger=ledger, log=log,
     )  # fmt: skip
-    state: State = {
-        "text": instruction,
-        "cl_envelope": opened.envelope.model_dump(mode="json"),
-        "hops": [],
-    }
+    # The root envelope carries the text the agents are given (T_0 is not in the digest).
+    root = opened.envelope.model_copy(update={"payload_text": instruction})
+    state: State = {"text": instruction, "cl_envelope": root.model_dump(mode="json"), "hops": []}
     try:
-        final = await app.ainvoke(state)
-        result.hops = final["hops"]
+        await app.ainvoke(state)
     except ConstraintViolation as exc:
         result.halted = exc.verdict.reason
+    result.hops = log
     await cl.close_trace(opened.trace_id)
     result.tool_calls = list(ledger.calls)
     result.blocked = list(ledger.blocked)
@@ -210,6 +214,8 @@ def _cell(r: RunResult) -> str:
     if r.blocked:
         call, _ = r.blocked[0]
         return f"blocked {call.tool}({', '.join(f'{k}={v}' for k, v in call.args.items())})"
+    if r.halted:
+        return "halted before acting: " + r.halted.split(";")[0]
     return "ok"
 
 

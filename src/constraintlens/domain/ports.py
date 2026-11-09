@@ -145,6 +145,18 @@ class PipelineAdapter(Protocol[MessageT]):
 
 
 @runtime_checkable
+class JudgeCache(Protocol):
+    """Tier 2 verdict cache (§7.4), keyed by
+    ``hash(canonical_text || normalized(T_k) || prompt_version || judge_model)``."""
+
+    async def get(self, key: str) -> JudgeResult | None: ...
+
+    async def put(
+        self, key: str, result: JudgeResult, *, model: str, prompt_version: str
+    ) -> None: ...
+
+
+@runtime_checkable
 class Embedder(Protocol):
     """Text encoder used for routing and cache keys only, never for ENTAILED (§7.4)."""
 
@@ -183,6 +195,7 @@ __all__ = [
     "Embedder",
     "EventStore",
     "Judge",
+    "JudgeCache",
     "MessageT",
     "NLIModel",
     "PipelineAdapter",

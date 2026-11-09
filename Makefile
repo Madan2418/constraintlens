@@ -1,7 +1,7 @@
 # ConstraintLens developer tasks (ARCHITECTURE.md §19.2).
 # Targets for later phases fail loudly instead of pretending to work.
 
-.PHONY: setup test extraction-eval coverage-domain lint format-check format typecheck imports check integration eval bench demo demo-baseline demo-protected demo-async serve
+.PHONY: setup test extraction-eval coverage-domain lint format-check format typecheck imports check integration eval bench demo demo-baseline demo-protected demo-async latency serve
 
 setup:
 	uv sync --all-extras
@@ -57,6 +57,10 @@ demo-baseline:
 demo-protected:
 	uv run python -m pipelines.refund_langgraph --mutation SUMMARIZATION_LOSS --hop 2 --compare
 	uv run python -m pipelines.refund_langgraph --matrix --org-policy
+
+# Phase 5 exit criterion: per-tier latency against the §10.3 budgets.
+latency:
+	uv run python -m eval.latency_budget --out eval/reports
 
 # Phase 4: redelivery handled once, and a stale constraint failing closed.
 demo-async:

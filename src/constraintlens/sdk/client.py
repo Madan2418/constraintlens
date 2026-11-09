@@ -485,6 +485,13 @@ class ConstraintLens:
                 base_id = make_hop_id(incoming)
                 consumed = await self.consume(incoming, hop_id=base_id)
                 raise_if_blocking(consumed)
+                if consumed.decision == "RE_GROUND" and consumed.regrounded_text:
+                    # The task arrived drifted: re-inject the constraint before acting (§7.8).
+                    message = adapter.write_text(
+                        message,
+                        adapter.read_text(message)
+                        + f"\n\nConstraint reminder: {consumed.regrounded_text}",
+                    )
 
                 attempt, current_id, task_message = 0, base_id, message
                 while True:

@@ -50,13 +50,21 @@ class Settings(BaseSettings):
     nli_model: str = ""
     embed_model: str = ""
 
+    nli_timeout_s: float = Field(default=0.5, gt=0)  # §10.3 hard timeout for Tier 1c
+    #: Tier 1c routing: a band score whose text is this dissimilar is "clearly irrelevant".
+    route_irrelevant_below: float = Field(default=0.15, ge=0.0, le=1.0)
+
     # Judge (provider-agnostic)
     judge_provider: Literal["anthropic", "openai_compat"] = "anthropic"
-    judge_model: str = ""
+    judge_model: str = ""  # empty: claude-opus-5-5 for anthropic; required for openai_compat
     judge_api_key: SecretStr | None = None
+    judge_base_url: str = ""  # openai_compat only
     judge_timeout_s: float = Field(default=10.0, gt=0)
     judge_cache: bool = True
     judge_prompt_version: str = "v1"
+    judge_prompt_dir: str = ""  # empty: docs/judge_prompts in the source tree
+    judge_effort: Literal["", "low", "medium", "high", "xhigh", "max"] = "low"
+    judge_fallbacks: bool = True  # anthropic: server-side refusal fallback where supported
 
     # Extraction (ADR 0003): off | fallback | always
     extraction_llm_mode: Literal["off", "fallback", "always"] = "fallback"

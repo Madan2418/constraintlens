@@ -45,6 +45,19 @@ class Finding:
     held: bool = False  # a gap the checkpoint must wait out (§9.4, ADR 0006)
 
 
+@dataclass
+class Routing:
+    """Per-check routing state the tiers share (§7.4 rules 3-4).
+
+    ``escalated``: constraints a tier could not decide and passed on (the NLI band, an
+    unavailable NLI model). ``reverified``: constraints a semantic tier has scored with
+    a passing verdict, which settles their staleness (§9.3).
+    """
+
+    escalated: set[UUID] = field(default_factory=set)
+    reverified: set[UUID] = field(default_factory=set)
+
+
 @dataclass(frozen=True)
 class CheckContext:
     request: CheckpointRequest
@@ -53,6 +66,7 @@ class CheckContext:
     history: HopHistory = field(default_factory=HopHistory)  # hops seen so far (§9.4)
     guard: GuardConfig = field(default_factory=GuardConfig)
     key: str = ""  # idempotency key of this checkpoint; default (trace, hop, checkpoint)
+    routing: Routing = field(default_factory=Routing)
 
     def registered_by_id(self) -> dict[UUID, Constraint]:
         return {c.constraint_id: c for c in self.registered}
@@ -69,6 +83,13 @@ class CheckContext:
         """Constraints a semantic tier must re-verify (§9.3); semantic tiers route on it."""
         return self.assessment.stale
 
+    def needs_judgement(self) -> list[Constraint]:
+        """Constraints the last semantic tier must decide: escalated, or stale and not
+        yet re-verified by an earlier tier."""
+        want = set(self.routing.escalated)
+        want |= {cid for cid in self.stale if cid not in self.routing.reverified}
+        return [c for c in self.registered if c.constraint_id in want]
+
 
 @dataclass(frozen=True)
 class TierOutcome:
@@ -78,6 +99,10 @@ class TierOutcome:
     degraded: bool = False
     degraded_constraint_ids: list[UUID] = field(default_factory=list)
     cache_hit: bool = False
+    escalate: list[UUID] = field(default_factory=list)  # undecided: pass to a later tier
+    resolved: list[UUID] = field(default_factory=list)  # escalations this tier settled
+    judge_failures: list[str] = field(default_factory=list)  # recorded as JUDGE_FAILED
+    notes: list[str] = field(default_factory=list)
 
 
 class Tier(Protocol):
@@ -102,6 +127,7 @@ class CheckResult:
     cache_hit: bool
     findings_by_tier: dict[str, list[Finding]] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)  # explanations enforcement adds to reasons
+    judge_failures: list[str] = field(default_factory=list)
 
     @property
     def held(self) -> bool:
@@ -127,11 +153,12 @@ class TieredChecker:
         scores: dict[UUID, float] = {}
         latency: dict[str, float] = {}
         run: list[TierId] = []
-        degraded, cache_hit, stopped = False, False, False
+        degraded, cache_hit, integrity_stop, decided = False, False, False, False
         degraded_ids: list[UUID] = []
         by_tier: dict[str, list[Finding]] = {}
-        reverified: set[UUID] = set()
-        reverify_failed: dict[UUID, Finding] = {}
+        notes: list[str] = []
+        judge_failures: list[str] = []
+        routing = ctx.routing
         for tier in self._tiers:
             if not tier.applies(ctx):
                 continue
@@ -145,37 +172,54 @@ class TieredChecker:
             degraded |= outcome.degraded
             degraded_ids += outcome.degraded_constraint_ids
             cache_hit |= outcome.cache_hit
+            notes += outcome.notes
+            judge_failures += outcome.judge_failures
+            routing.escalated -= set(outcome.resolved)
+            routing.escalated |= set(outcome.escalate)
             if getattr(tier, "semantic", False):
-                skipped = set(outcome.degraded_constraint_ids)
-                reverified |= {cid for cid in outcome.scores if cid not in skipped}
-                for f in outcome.findings:
-                    if f.failure.constraint_id is not None:
-                        reverify_failed.setdefault(f.failure.constraint_id, f)
+                unsettled = set(outcome.degraded_constraint_ids) | set(outcome.escalate)
+                failed = {f.failure.constraint_id for f in outcome.findings}
+                routing.reverified |= {
+                    cid for cid in outcome.scores if cid not in unsettled and cid not in failed
+                }
             if outcome.terminal:
-                stopped = bool(outcome.findings)
+                integrity_stop = tier.name == "T0" and bool(outcome.findings)
+                decided = bool(outcome.findings)
                 break
         if not run:  # pragma: no cover - Tier 0 always applies; defensive postcondition
             raise RuntimeError("no tier applied to the checkpoint")
 
-        notes: list[str] = []
-        if not stopped:  # a terminal failure already decides; staleness is moot
+        # Escalations no tier settled (no Tier 2, or it was skipped) are unverified: the
+        # fail policy decides (§10.1). Moot once a finding already decided.
+        if routing.escalated and not decided:
+            degraded = True
+            for cid in sorted(routing.escalated, key=str):
+                degraded_ids.append(cid)
+                notes.append(f"constraint {cid} undecided (escalated); no tier could settle it")
+
+        if not integrity_stop:  # an integrity failure already decides; staleness is moot
+            drift = {
+                f.failure.constraint_id: f
+                for f in findings
+                if f.failure.kind == "TEXTUAL_DRIFT" and f.failure.constraint_id is not None
+            }
             for cid, why in ctx.stale.items():
-                if cid in reverify_failed:
-                    failed = reverify_failed[cid].failure
+                if cid in drift:
                     stale = Finding(
                         Failure(
                             kind="STALE",
                             constraint_id=cid,
-                            detail=f"{why}; re-verification failed: {failed.detail}",
+                            detail=f"{why}; re-verification failed: {drift[cid].failure.detail}",
                         )
                     )
                     findings.append(stale)
                     by_tier.setdefault(run[-1], []).append(stale)
-                elif cid in reverified:
+                elif cid in routing.reverified:
                     notes.append(f"constraint {cid} stale ({why}); re-verified")
-                else:
+                elif not decided:
                     degraded = True
-                    degraded_ids.append(cid)
+                    if cid not in degraded_ids:
+                        degraded_ids.append(cid)
                     notes.append(
                         f"constraint {cid} stale ({why}); no semantic tier could re-verify it"
                     )
@@ -190,4 +234,5 @@ class TieredChecker:
             cache_hit=cache_hit,
             findings_by_tier=by_tier,
             notes=notes,
+            judge_failures=judge_failures,
         )

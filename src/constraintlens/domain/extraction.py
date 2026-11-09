@@ -304,6 +304,19 @@ def _quantities(seg: str) -> list[_Quantity]:
     return out
 
 
+def find_quantities(text: str) -> list[tuple[Decimal, str]]:
+    """Every amount or count in ``text`` as ``(value, unit)`` (used by Tier 1b)."""
+    return [(q.value, q.unit) for q in _quantities(text)]
+
+
+def mentions_approval(text: str) -> bool:
+    return bool(_APPROVAL.search(text))
+
+
+def negates_approval(text: str) -> bool:
+    return bool(_NO_APPROVAL.search(text))
+
+
 def _time_spans(seg: str) -> list[tuple[int, int]]:
     return [(m.start(), m.end()) for m in _TIME_QTY_RE.finditer(seg)]
 

@@ -213,8 +213,8 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
       <h1>ConstraintLens build log</h1>
       <p class="lede">A runtime framework that detects semantic constraint drift in asynchronous multi-agent AI systems. It checks that a constraint such as "refund up to $100" still means the same thing after each agent rewrites the task, and it blocks the tool call when the meaning has been lost.</p>
       <div class="status-bar">
-        <span class="pill ok"><span class="dot"></span>Phases 0–4 complete · Phase 5 next</span>
-        <span class="pill neutral">Sessions logged: 6</span>
+        <span class="pill ok"><span class="dot"></span>Phases 0–5 complete · Phase 6 next</span>
+        <span class="pill neutral">Sessions logged: 7</span>
         <span class="pill neutral">Last updated 2026-11-09</span>
         <span class="pill neutral">Python 3.11+ · FastAPI · React</span>
       </div>
@@ -440,8 +440,8 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
         <div class="phase"><span class="num">P2</span><div><h4>Baseline pipelines</h4><p>Unprotected LangGraph refund pipeline and Redis-worker pipeline that reproduce the silent violation.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P3</span><div><h4>Service and direct handoff</h4><p>FastAPI <code>/v1</code>, SDK, SQLite event store, Tier 0 and 1a, enforcement table, recorder.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P4</span><div><h4>Async boundary</h4><p>Redis Streams transport, async guard (staleness, reordering, loss, redelivery), idempotent verdicts.</p></div><span class="pill ok">done</span></div>
-        <div class="phase"><span class="num">P5</span><div><h4>Semantic tiers</h4><p>T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing, degraded path.</p></div><span class="pill warn">next</span></div>
-        <div class="phase"><span class="num">P6</span><div><h4>driftchain-bench</h4><p>6 scenarios × 9 operators, async profiles, seeded generator, JSONL schema, dataset card.</p></div><span class="pill neutral">planned</span></div>
+        <div class="phase"><span class="num">P5</span><div><h4>Semantic tiers</h4><p>T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing, degraded path.</p></div><span class="pill ok">done</span></div>
+        <div class="phase"><span class="num">P6</span><div><h4>driftchain-bench</h4><p>6 scenarios × 9 operators, async profiles, seeded generator, JSONL schema, dataset card.</p></div><span class="pill warn">next</span></div>
         <div class="phase"><span class="num">P7</span><div><h4>Attribution</h4><p>DAG edge deltas, fan-in, async-cause classification, replay endpoint.</p></div><span class="pill neutral">planned</span></div>
         <div class="phase"><span class="num">P8</span><div><h4>Evaluation</h4><p>B0–B3, C1–C3 and embedding-only configs, threshold tuning on val, bootstrap CIs, <code>make eval</code>.</p></div><span class="pill neutral">planned</span></div>
         <div class="phase"><span class="num">P9</span><div><h4>Dashboard and CLI</h4><p>The six views previewed above, plus the Typer CLI.</p></div><span class="pill neutral">planned</span></div>
@@ -546,6 +546,19 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
           <li><b>Exit criteria met</b>: the Hypothesis properties pass (verdicts idempotent under any redelivery order, concurrent duplicates included; the reordering frontier never moves backwards; replay reproduces every decision, holds included). The property test also found a real bug: the root hop was not known as observed. The failure-injection suite passes: service unreachable, store outage, Redis outage mid-trace, tampered or stripped envelope, lost message, reordering, concurrent duplicates.</li>
           <li>ADR 0006 records the decisions. The CI workflow gains an integration job with a Redis 7 service container, and <code>make integration</code> now runs the real-Redis tests.</li>
           <li>Totals: 536 tests pass (2 real-Redis tests skipped locally), domain coverage 98%, ruff, mypy and import-linter (5/5) clean. Still open: judge-timeout injection (needs the Phase 5 judge); a store <em>append</em> failure is still acked as a degraded block.</li>
+        </ul>
+      </div>
+      <div class="session" style="margin-top:22px">
+        <div class="meta"><h3>Session 7</h3><span class="pill neutral">2026-11-09</span><span class="pill ok">Phase 5 done</span><span class="pill ok">pushed</span></div>
+        <ul>
+          <li><b>Tier 1b lexical</b> (<code>tier1b_lexical.py</code>): reuses the extraction parser. It flags a loosened limit ("may exceed", "no limit", "in full", "ignore previous limits"), a raised or missing limit, and an approval requirement dropped or negated. A <em>stricter</em> stated cap passes. Always on: the demos now stop drift at the hop that introduced it, before any tool runs. Clean runs of both pipelines (with and without the org policy) produce only ALLOW verdicts.</li>
+          <li><b>Tier 1c NLI</b> (<code>tier1c_nli.py</code>): scores T_k ⇒ canonical(C) in a worker thread under the 500 ms hard timeout. Above θ_high passes, below θ_low is drift, the band escalates. An unavailable model escalates everything to Tier 2. Embedding routing only short-circuits the clearly unrelated case, never ENTAILED.</li>
+          <li><b>Tier 2 judge</b> (<code>tier2_judge.py</code>): decides escalated and stale-but-unverified constraints. It has a cache (§7.4 key; in-memory and SQLite <code>judge_cache</code> table) and an <b>evidence guard</b> (§21.1): ENTAILED counts only if the quoted span really occurs in the task text, otherwise it becomes AMBIGUOUS. Failures, timeouts, refusals and invalid output degrade the verdict and log <code>JUDGE_FAILED</code>.</li>
+          <li><b>Routing</b> is shared state in the checker (escalated / re-verified sets). Escalations nobody settles degrade per the fail policy. Staleness is re-verified by 1c or 2, and lexical drift on a stale constraint counts as failed re-verification.</li>
+          <li><b>Adapters</b>: <code>AnthropicJudge</code> on the official SDK (optional extra <code>judge</code>): cached system prompt, JSON-schema structured output at low effort, default <code>claude-opus-5-5</code>, server-side refusal fallback on supported models. Checked offline against the real SDK with a mock transport. Also <code>OpenAICompatJudge</code>, <code>CrossEncoderNLI</code> and <code>SentenceTransformerEmbedder</code> (group <code>models</code>), and versioned prompt <code>judge_v1</code>.</li>
+          <li><b>Fixed along the way</b>: replay with no tier override rebuilt the default checker instead of the live one (it would have reported spurious changes). Replay is now the live tiers with a cache-only judge, so it never spends money. <code>guard_hop</code> now applies a CONSUME re-ground. A halted run keeps its hop log and shows in the matrix as "halted".</li>
+          <li><b>Exit criteria met</b>: <code>eval/latency_budget.py</code> gives T0/T1a/T1b p95 ≈ 0.1 ms (budget 5 ms) and end to end without escalation p95 ≈ 12 ms (budget 150 ms), with a CI test on regressions. The judge failure path degrades correctly (high risk BLOCK, low risk WARN, <code>JUDGE_FAILED</code>), end to end through the SDK.</li>
+          <li>ADR 0007 records the decisions. Totals: 615 tests pass (2 real-Redis tests skipped locally), domain coverage 98%, ruff, mypy and import-linter clean. Open: SCOPE_WIDEN needs a real NLI model or judge; thresholds wait for Phase 8 tuning; no live model ran here (no key or weights on this host).</li>
         </ul>
       </div>
     </section>

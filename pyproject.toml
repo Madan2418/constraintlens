@@ -21,8 +21,16 @@ dependencies = [
 pipelines = [
     "langgraph>=0.2",
 ]
+# Real Tier 2 judge and LLM extraction (ADR 0007). Without it the service runs rules-only.
+judge = [
+    "anthropic>=2.6",
+]
 
 [dependency-groups]
+# Local Tier 1c NLI model and embedder (ADR 0007): uv sync --group models. CPU is enough.
+models = [
+    "sentence-transformers>=3.0",
+]
 dev = [
     "fakeredis>=2.23",
     "pytest>=8.2",
@@ -110,6 +118,11 @@ check_untyped_defs = true
 [[tool.mypy.overrides]]
 module = ["constraintlens.domain", "constraintlens.domain.*"]
 strict = true
+
+[[tool.mypy.overrides]]
+# Optional, lazily imported model libraries (dependency group "models").
+module = ["sentence_transformers"]
+ignore_missing_imports = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

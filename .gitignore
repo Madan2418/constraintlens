@@ -18,8 +18,8 @@ htmlcov/
 
 # Local config and data
 .env
-data/
-models/
+/data/
+/models/
 driftchain_bench/data/*.jsonl
 
 # Dashboard

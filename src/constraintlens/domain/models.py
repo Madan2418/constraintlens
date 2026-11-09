@@ -383,11 +383,16 @@ class Event(_Frozen):
 
 
 class JudgeResult(_Frozen):
-    """Strict judge output contract: ``{verdict, reason, confidence}`` (§7.4)."""
+    """Strict judge output contract: ``{verdict, reason, confidence}`` (§7.4).
+
+    ``evidence`` is the verbatim span of the task text the judge relied on (§21.1).
+    Tier 2 accepts ENTAILED only when that span really occurs in T_k (ADR 0007).
+    """
 
     verdict: JudgeLabel
     reason: str = NonEmptyStr
     confidence: float = Field(ge=0.0, le=1.0)
+    evidence: str | None = None
 
 
 class Delivery(_Frozen):

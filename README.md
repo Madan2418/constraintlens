@@ -20,8 +20,9 @@ survey, review decks, diagrams) is in [`documentation/`](documentation/).
 | 2. Baseline pipelines: unprotected LangGraph refund + Redis-worker procurement | **done** |
 | 3. Service + direct handoff: FastAPI `/v1`, SDK, SQLite event log, Tier 0 + 1a, enforcement | **done** |
 | 4. Async boundary: Redis Streams transport, async guard, idempotent verdicts, Redis-worker adapter | **done** |
-| 5. Semantic tiers | next |
-| 6–10 | planned |
+| 5. Semantic tiers: T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing | **done** |
+| 6. Benchmark (driftchain-bench) | next |
+| 7–10 | planned |
 
 Extraction accuracy (rules only, `make extraction-eval`): 1.00 exact match on the
 100-instruction gold set, which is in-sample (same author as the rules), and 0.85 on a
@@ -80,6 +81,31 @@ now. The guard also holds checkpoints whose predecessor is missing, flags late
 deliveries, and a sweeper reports messages published but never consumed. See
 `docs/decisions/0006-async-boundary.md`.
 
+## Semantic tiers (Phase 5)
+
+Tier 1b (lexical) is always on, so the demos now stop drift at the hop that introduced
+it, before any tool runs:
+
+```bash
+uv run python -m pipelines.refund_langgraph --matrix --org-policy
+uv run python -m eval.latency_budget            # per-tier latency vs the §10.3 budgets
+```
+
+Tier 1c and Tier 2 switch on when their models are configured (`/v1/health` lists the
+live tiers):
+
+```bash
+uv sync --all-extras --group models     # anthropic SDK + sentence-transformers (CPU)
+export CL_NLI_MODEL=<cross-encoder NLI model id>   # Tier 1c
+export CL_EMBED_MODEL=<sentence-transformers id>   # optional routing
+export CL_JUDGE_API_KEY=...                        # Tier 2; CL_JUDGE_MODEL defaults to claude-opus-5-5
+```
+
+The judge runs only for NLI-band and stale constraints, behind a cache. Replay never
+calls it. Each judge call is billed by the provider, so `CL_ENABLE_TIER_2=false` turns
+it off. A judge that fails, times out, refuses or returns invalid output degrades the
+verdict, and the fail policy decides. See `docs/decisions/0007-semantic-tiers.md`.
+
 ## Quick start (development)
 
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
@@ -97,7 +123,7 @@ On Windows without `make`, run the commands from the `Makefile` directly, e.g.
 
 ```
 src/constraintlens/
-  domain/        pure core: models, ports, (later) checker tiers, guard, attribution
+  domain/        pure core: models, ports, checker tiers (T0–T2), async guard, enforcement
   application/   use cases (Phase 1+)
   adapters/      port implementations; fakes used by tests live here too
   api/           FastAPI delivery layer; wiring.py is the composition root

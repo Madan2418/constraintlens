@@ -171,7 +171,7 @@ async def metrics(store: EventStore) -> dict[str, Any]:
     """Aggregates over all verdicts (§11.1 ``GET /v1/metrics``)."""
     decisions: Counter[str] = Counter()
     tiers: Counter[str] = Counter()
-    degraded = cache_hits = total = redeliveries = held = transit_losses = 0
+    degraded = cache_hits = total = redeliveries = held = transit_losses = judge_failed = 0
     latencies: dict[str, list[float]] = {}
     for e in await store.read_after(0):
         if e.type == "VERDICT_ISSUED":
@@ -189,6 +189,8 @@ async def metrics(store: EventStore) -> dict[str, Any]:
             held += 1
         elif e.type == "WARNING" and e.payload.get("transit_loss"):
             transit_losses += 1
+        elif e.type == "JUDGE_FAILED":
+            judge_failed += 1
     return {
         "verdicts": total,
         "decisions": dict(decisions),
@@ -198,6 +200,7 @@ async def metrics(store: EventStore) -> dict[str, Any]:
         "redeliveries": redeliveries,
         "held": held,
         "transit_losses": transit_losses,
+        "judge_failures": judge_failed,
         "latency_ms": {t: _percentiles(v) for t, v in sorted(latencies.items())},
     }
 
