@@ -21,8 +21,9 @@ survey, review decks, diagrams) is in [`documentation/`](documentation/).
 | 3. Service + direct handoff: FastAPI `/v1`, SDK, SQLite event log, Tier 0 + 1a, enforcement | **done** |
 | 4. Async boundary: Redis Streams transport, async guard, idempotent verdicts, Redis-worker adapter | **done** |
 | 5. Semantic tiers: T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing | **done** |
-| 6. Benchmark (driftchain-bench) | next |
-| 7–10 | planned |
+| 6. Benchmark: driftchain-bench generator, 9 operators, 6 scenarios, 4,000 chains, locked schema, validation tooling | **done** (human validation labels pending) |
+| 7. Attribution | next |
+| 8–10 | planned |
 
 Extraction accuracy (rules only, `make extraction-eval`): 1.00 exact match on the
 100-instruction gold set, which is in-sample (same author as the rules), and 0.85 on a
@@ -106,6 +107,38 @@ calls it. Each judge call is billed by the provider, so `CL_ENABLE_TIER_2=false`
 it off. A judge that fails, times out, refuses or returns invalid output degrades the
 verdict, and the fail policy decides. See `docs/decisions/0007-semantic-tiers.md`.
 
+## Benchmark: driftchain-bench (Phase 6)
+
+`driftchain_bench/` is a separately releasable package: it imports nothing from
+ConstraintLens, and ConstraintLens never imports it. It generates labeled asynchronous
+delegation chains:
+
+- **6 scenarios** (refund, transfer, data access, scheduling, deletion, procurement);
+- **8 drift operators** plus `NONE` controls, half of the controls hard negatives;
+- **linear, fan-out and fan-in topologies**, with dwell, reordering and redelivery
+  profiles.
+
+```bash
+uv run python -m driftchain_bench generate --version 0.1.0 --seed 7 --size 4000
+uv run python -m driftchain_bench check        # schema lock + byte-for-byte reproduction
+uv run python -m driftchain_bench validate --sample 300   # blind hand-validation sample
+```
+
+The 4,000-chain release is reproduced from its seed and pinned by the SHA-256 in
+`driftchain_bench/manifests/`; the JSONL itself is not committed.
+
+| split | chains |
+|---|---|
+| dev | 816 |
+| val | 816 |
+| test | 2,368 |
+
+Labels are computed by construction, and on every chain they agree with ConstraintLens's
+own structural action check. **Hand-validation labels are still pending.** The blind
+sample, the labeling guide and the agreement tooling are in
+`driftchain_bench/validation/`. See `driftchain_bench/DATASET_CARD.md` and
+`docs/decisions/0008-driftchain-bench.md`.
+
 ## Quick start (development)
 
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
@@ -136,6 +169,8 @@ pipelines/
   procurement_redis_workers.py  the Redis-worker pipeline, protected (GuardedWorker)
 tests/
   unit/ contract/ property/ e2e/   (e2e includes the failure-injection suite)
+driftchain_bench/  benchmark: scenarios/*.yaml, operators/, generator, schema.json,
+                   manifests/, validation/ (blind sample, guide), DATASET_CARD.md
 docs/decisions/  architecture decision records
 ```
 

@@ -1,0 +1,134 @@
+{
+  "name": "driftchain-bench",
+  "generator_version": "0.1.0",
+  "schema_version": "1.0",
+  "seed": 7,
+  "size": 4000,
+  "file": "driftchain-bench-v0.1.0-seed7-n4000.jsonl",
+  "sha256": "1a79c00db9945110ff33a9cab75fe91ad532b319033562e75126577bc318e754",
+  "llm_paraphrase_model": null,
+  "statistics": {
+    "chains": 4000,
+    "instances": 500,
+    "split": {
+      "dev": 816,
+      "test": 2368,
+      "val": 816
+    },
+    "scenario": {
+      "data_access": 672,
+      "deletion": 672,
+      "procurement": 664,
+      "refund": 664,
+      "scheduling": 664,
+      "transfer": 664
+    },
+    "operator": {
+      "NUMERIC_LOOSEN": 254,
+      "QUALIFIER_DELETE": 249,
+      "NEGATION_FLIP": 252,
+      "SCOPE_WIDEN": 253,
+      "SUMMARIZATION_LOSS": 252,
+      "STALE_CONTEXT": 251,
+      "CONSTRAINT_DROP_ONE": 237,
+      "INJECTED_INSTRUCTION": 252,
+      "NONE": 2000
+    },
+    "topology": {
+      "fan_in": 1032,
+      "fan_out": 997,
+      "linear": 1971
+    },
+    "dwell": {
+      "hours": 987,
+      "immediate": 1462,
+      "minutes": 1551
+    },
+    "reorder": 1015,
+    "redelivery": 821,
+    "controls": 2000,
+    "hard_negatives": 1017,
+    "with_violation": 1345,
+    "with_org_policy": 2144,
+    "adversarial_injections": 81,
+    "operator_by_scenario": {
+      "data_access": {
+        "NUMERIC_LOOSEN": 43,
+        "QUALIFIER_DELETE": 42,
+        "NEGATION_FLIP": 42,
+        "SCOPE_WIDEN": 43,
+        "SUMMARIZATION_LOSS": 42,
+        "STALE_CONTEXT": 43,
+        "CONSTRAINT_DROP_ONE": 38,
+        "INJECTED_INSTRUCTION": 43,
+        "NONE": 336
+      },
+      "deletion": {
+        "NUMERIC_LOOSEN": 43,
+        "QUALIFIER_DELETE": 42,
+        "NEGATION_FLIP": 43,
+        "SCOPE_WIDEN": 43,
+        "SUMMARIZATION_LOSS": 43,
+        "STALE_CONTEXT": 42,
+        "CONSTRAINT_DROP_ONE": 38,
+        "INJECTED_INSTRUCTION": 42,
+        "NONE": 336
+      },
+      "procurement": {
+        "NUMERIC_LOOSEN": 42,
+        "QUALIFIER_DELETE": 42,
+        "NEGATION_FLIP": 42,
+        "SCOPE_WIDEN": 42,
+        "SUMMARIZATION_LOSS": 42,
+        "STALE_CONTEXT": 42,
+        "CONSTRAINT_DROP_ONE": 39,
+        "INJECTED_INSTRUCTION": 41,
+        "NONE": 332
+      },
+      "refund": {
+        "NUMERIC_LOOSEN": 42,
+        "QUALIFIER_DELETE": 41,
+        "NEGATION_FLIP": 41,
+        "SCOPE_WIDEN": 41,
+        "SUMMARIZATION_LOSS": 42,
+        "STALE_CONTEXT": 41,
+        "CONSTRAINT_DROP_ONE": 42,
+        "INJECTED_INSTRUCTION": 42,
+        "NONE": 332
+      },
+      "scheduling": {
+        "NUMERIC_LOOSEN": 42,
+        "QUALIFIER_DELETE": 41,
+        "NEGATION_FLIP": 42,
+        "SCOPE_WIDEN": 42,
+        "SUMMARIZATION_LOSS": 42,
+        "STALE_CONTEXT": 42,
+        "CONSTRAINT_DROP_ONE": 39,
+        "INJECTED_INSTRUCTION": 42,
+        "NONE": 332
+      },
+      "transfer": {
+        "NUMERIC_LOOSEN": 42,
+        "QUALIFIER_DELETE": 41,
+        "NEGATION_FLIP": 42,
+        "SCOPE_WIDEN": 42,
+        "SUMMARIZATION_LOSS": 41,
+        "STALE_CONTEXT": 41,
+        "CONSTRAINT_DROP_ONE": 41,
+        "INJECTED_INSTRUCTION": 42,
+        "NONE": 332
+      }
+    },
+    "violation_by_operator": {
+      "NUMERIC_LOOSEN": 115,
+      "QUALIFIER_DELETE": 0,
+      "NEGATION_FLIP": 119,
+      "SCOPE_WIDEN": 214,
+      "SUMMARIZATION_LOSS": 220,
+      "STALE_CONTEXT": 251,
+      "CONSTRAINT_DROP_ONE": 204,
+      "INJECTED_INSTRUCTION": 222,
+      "NONE": 0
+    }
+  }
+}

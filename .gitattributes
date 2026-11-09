@@ -1,0 +1,4 @@
+# Generated benchmark artefacts are compared byte for byte (ADR 0008): keep LF everywhere.
+driftchain_bench/schema.json text eol=lf
+driftchain_bench/manifests/*.json text eol=lf
+driftchain_bench/validation/** text eol=lf

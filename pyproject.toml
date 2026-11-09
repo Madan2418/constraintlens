@@ -14,6 +14,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.30",
     "aiosqlite>=0.20",
     "redis>=5.0",
+    "pyyaml>=6.0",  # driftchain-bench scenario templates
 ]
 
 [project.optional-dependencies]
@@ -93,7 +94,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["constraintlens", "pipelines", "eval", "tests"]
+known-first-party = ["constraintlens", "driftchain_bench", "pipelines", "eval", "tests"]
 
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = [
@@ -109,7 +110,7 @@ runtime-evaluated-base-classes = [
 python_version = "3.11"
 plugins = ["pydantic.mypy"]
 mypy_path = "src"
-packages = ["constraintlens", "pipelines"]
+packages = ["constraintlens", "pipelines", "driftchain_bench"]
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
@@ -124,6 +125,15 @@ strict = true
 module = ["sentence_transformers"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+# The benchmark package is released on its own (§13): strict like the domain core.
+module = ["driftchain_bench", "driftchain_bench.*"]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["yaml"]
+ignore_missing_imports = true
+
 [tool.pydantic-mypy]
 init_forbid_extra = true
 init_typed = true
@@ -133,7 +143,7 @@ warn_required_dynamic_aliases = true
 # import-linter  (ARCHITECTURE.md §17 import rule)
 # --------------------------------------------------------------------------- #
 [tool.importlinter]
-root_packages = ["constraintlens", "pipelines"]
+root_packages = ["constraintlens", "pipelines", "driftchain_bench"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -179,6 +189,18 @@ name = "Baseline pipelines and shared agents never touch ConstraintLens"
 type = "forbidden"
 source_modules = ["pipelines.baseline", "pipelines.common"]
 forbidden_modules = ["constraintlens"]
+
+[[tool.importlinter.contracts]]
+name = "driftchain-bench is separately releasable"
+type = "forbidden"
+source_modules = ["driftchain_bench"]
+forbidden_modules = ["constraintlens", "pipelines"]
+
+[[tool.importlinter.contracts]]
+name = "ConstraintLens and the pipelines never read benchmark labels"
+type = "forbidden"
+source_modules = ["constraintlens", "pipelines"]
+forbidden_modules = ["driftchain_bench"]
 
 [[tool.importlinter.contracts]]
 name = "SDK carries no server-side code"

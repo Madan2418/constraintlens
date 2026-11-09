@@ -1,0 +1,544 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Madan2418/constraintlens/driftchain_bench/schema.json",
+  "title": "ChainRec",
+  "description": "One labeled asynchronous delegation chain (schema 1.0, ARCHITECTURE.md §13.5).",
+  "x-schema-version": "1.0",
+  "$defs": {
+    "ActionRec": {
+      "additionalProperties": false,
+      "properties": {
+        "tool": {
+          "minLength": 1,
+          "title": "Tool",
+          "type": "string"
+        },
+        "args": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "title": "Args",
+          "type": "object"
+        }
+      },
+      "required": [
+        "tool",
+        "args"
+      ],
+      "title": "ActionRec",
+      "type": "object"
+    },
+    "BindingRec": {
+      "additionalProperties": false,
+      "description": "Mirrors ``constraintlens.domain.models.ActionBinding``.",
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "resource": {
+          "title": "Resource",
+          "type": "string"
+        },
+        "amount_arg": {
+          "title": "Amount Arg",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "subject_arg": {
+          "title": "Subject Arg",
+          "type": "string"
+        },
+        "subject_kind": {
+          "title": "Subject Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "resource",
+        "amount_arg",
+        "unit",
+        "subject_arg",
+        "subject_kind"
+      ],
+      "title": "BindingRec",
+      "type": "object"
+    },
+    "ConstraintRec": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^c[0-9]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "user",
+            "org"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "canonical_text": {
+          "minLength": 1,
+          "title": "Canonical Text",
+          "type": "string"
+        },
+        "spec": {
+          "$ref": "#/$defs/ConstraintSpecRec"
+        }
+      },
+      "required": [
+        "id",
+        "scope",
+        "canonical_text",
+        "spec"
+      ],
+      "title": "ConstraintRec",
+      "type": "object"
+    },
+    "ConstraintSpecRec": {
+      "additionalProperties": false,
+      "description": "Mirrors ``constraintlens.domain.models.ConstraintSpec`` (a test checks it).",
+      "properties": {
+        "scope": {
+          "enum": [
+            "user",
+            "org"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "owner": {
+          "minLength": 1,
+          "title": "Owner",
+          "type": "string"
+        },
+        "subject": {
+          "minLength": 1,
+          "title": "Subject",
+          "type": "string"
+        },
+        "action": {
+          "minLength": 1,
+          "title": "Action",
+          "type": "string"
+        },
+        "resource": {
+          "minLength": 1,
+          "title": "Resource",
+          "type": "string"
+        },
+        "limit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LimitRec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "authority": {
+          "enum": [
+            "requires_approval_above_limit",
+            "none"
+          ],
+          "title": "Authority",
+          "type": "string"
+        },
+        "risk_class": {
+          "enum": [
+            "high",
+            "low"
+          ],
+          "title": "Risk Class",
+          "type": "string"
+        },
+        "origin": {
+          "enum": [
+            "user",
+            "policy"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "max_age_seconds": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Age Seconds"
+        }
+      },
+      "required": [
+        "scope",
+        "owner",
+        "subject",
+        "action",
+        "resource",
+        "limit",
+        "authority",
+        "risk_class",
+        "origin"
+      ],
+      "title": "ConstraintSpecRec",
+      "type": "object"
+    },
+    "HopRec": {
+      "additionalProperties": false,
+      "properties": {
+        "hop": {
+          "minimum": 1,
+          "title": "Hop",
+          "type": "integer"
+        },
+        "agent": {
+          "minLength": 1,
+          "title": "Agent",
+          "type": "string"
+        },
+        "parents": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Parents",
+          "type": "array"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "action": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ActionRec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "queue_dwell_s": {
+          "minimum": 0,
+          "title": "Queue Dwell S",
+          "type": "integer"
+        },
+        "consumed_at_s": {
+          "minimum": 0,
+          "title": "Consumed At S",
+          "type": "integer"
+        },
+        "delivery": {
+          "minimum": 1,
+          "title": "Delivery",
+          "type": "integer"
+        },
+        "arrival": {
+          "minimum": 1,
+          "title": "Arrival",
+          "type": "integer"
+        },
+        "surface": {
+          "pattern": "^(template|llm:.+)$",
+          "title": "Surface",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hop",
+        "agent",
+        "parents",
+        "text",
+        "action",
+        "queue_dwell_s",
+        "consumed_at_s",
+        "delivery",
+        "arrival",
+        "surface"
+      ],
+      "title": "HopRec",
+      "type": "object"
+    },
+    "LabelRec": {
+      "additionalProperties": false,
+      "properties": {
+        "drift": {
+          "title": "Drift",
+          "type": "boolean"
+        },
+        "mutation_op": {
+          "enum": [
+            "NUMERIC_LOOSEN",
+            "QUALIFIER_DELETE",
+            "NEGATION_FLIP",
+            "SCOPE_WIDEN",
+            "SUMMARIZATION_LOSS",
+            "STALE_CONTEXT",
+            "CONSTRAINT_DROP_ONE",
+            "INJECTED_INSTRUCTION",
+            "NONE"
+          ],
+          "title": "Mutation Op",
+          "type": "string"
+        },
+        "mutated_hop": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mutated Hop"
+        },
+        "violation_at_hop": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Violation At Hop"
+        },
+        "violated_constraints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Violated Constraints",
+          "type": "array"
+        },
+        "hard_negative": {
+          "title": "Hard Negative",
+          "type": "boolean"
+        },
+        "variant": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Variant"
+        }
+      },
+      "required": [
+        "drift",
+        "mutation_op",
+        "mutated_hop",
+        "violation_at_hop",
+        "violated_constraints",
+        "hard_negative",
+        "variant"
+      ],
+      "title": "LabelRec",
+      "type": "object"
+    },
+    "LimitRec": {
+      "additionalProperties": false,
+      "properties": {
+        "max_value": {
+          "exclusiveMinimum": 0,
+          "title": "Max Value",
+          "type": "integer"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "max_value",
+        "unit"
+      ],
+      "title": "LimitRec",
+      "type": "object"
+    },
+    "ProfileRec": {
+      "additionalProperties": false,
+      "properties": {
+        "dwell": {
+          "enum": [
+            "immediate",
+            "minutes",
+            "hours"
+          ],
+          "title": "Dwell",
+          "type": "string"
+        },
+        "reorder": {
+          "title": "Reorder",
+          "type": "boolean"
+        },
+        "redelivery": {
+          "title": "Redelivery",
+          "type": "boolean"
+        },
+        "fan_in": {
+          "title": "Fan In",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "dwell",
+        "reorder",
+        "redelivery",
+        "fan_in"
+      ],
+      "title": "ProfileRec",
+      "type": "object"
+    },
+    "ProvenanceRec": {
+      "additionalProperties": false,
+      "properties": {
+        "generator_version": {
+          "title": "Generator Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "instance_id": {
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "paraphrase_seed": {
+          "title": "Paraphrase Seed",
+          "type": "integer"
+        },
+        "llm_paraphrase_model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Llm Paraphrase Model"
+        }
+      },
+      "required": [
+        "generator_version",
+        "schema_version",
+        "seed",
+        "instance_id",
+        "paraphrase_seed",
+        "llm_paraphrase_model"
+      ],
+      "title": "ProvenanceRec",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "chain_id": {
+      "pattern": "^dcb-[0-9]{6}$",
+      "title": "Chain Id",
+      "type": "string"
+    },
+    "split": {
+      "enum": [
+        "dev",
+        "val",
+        "test"
+      ],
+      "title": "Split",
+      "type": "string"
+    },
+    "scenario": {
+      "title": "Scenario",
+      "type": "string"
+    },
+    "topology": {
+      "enum": [
+        "linear",
+        "fan_out",
+        "fan_in"
+      ],
+      "title": "Topology",
+      "type": "string"
+    },
+    "profile": {
+      "$ref": "#/$defs/ProfileRec"
+    },
+    "instruction": {
+      "minLength": 1,
+      "title": "Instruction",
+      "type": "string"
+    },
+    "constraints": {
+      "items": {
+        "$ref": "#/$defs/ConstraintRec"
+      },
+      "minItems": 1,
+      "title": "Constraints",
+      "type": "array"
+    },
+    "tools": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BindingRec"
+      },
+      "title": "Tools",
+      "type": "object"
+    },
+    "hops": {
+      "items": {
+        "$ref": "#/$defs/HopRec"
+      },
+      "minItems": 2,
+      "title": "Hops",
+      "type": "array"
+    },
+    "label": {
+      "$ref": "#/$defs/LabelRec"
+    },
+    "provenance": {
+      "$ref": "#/$defs/ProvenanceRec"
+    }
+  },
+  "required": [
+    "chain_id",
+    "split",
+    "scenario",
+    "topology",
+    "profile",
+    "instruction",
+    "constraints",
+    "tools",
+    "hops",
+    "label",
+    "provenance"
+  ],
+  "type": "object"
+}

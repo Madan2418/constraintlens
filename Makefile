@@ -1,7 +1,7 @@
 # ConstraintLens developer tasks (ARCHITECTURE.md §19.2).
 # Targets for later phases fail loudly instead of pretending to work.
 
-.PHONY: setup test extraction-eval coverage-domain lint format-check format typecheck imports check integration eval bench demo demo-baseline demo-protected demo-async latency serve
+.PHONY: setup test extraction-eval coverage-domain lint format-check format typecheck imports check integration eval bench bench-validate demo demo-baseline demo-protected demo-async latency serve
 
 setup:
 	uv sync --all-extras
@@ -45,8 +45,14 @@ integration:
 eval:
 	@echo "Evaluation harness arrives in Phase 8." && exit 1
 
+# Phase 6: generate the benchmark release, then prove schema lock + reproducibility.
 bench:
-	@echo "driftchain-bench generator arrives in Phase 6." && exit 1
+	uv run python -m driftchain_bench generate --version 0.1.0 --seed 7 --size 4000
+	uv run python -m driftchain_bench check
+
+# Phase 6: the blind hand-validation sample (driftchain_bench/validation/GUIDE.md).
+bench-validate:
+	uv run python -m driftchain_bench validate --sample 300
 
 # Phase 2: the unprotected "before" half of the demo (no Redis server needed).
 demo-baseline:
