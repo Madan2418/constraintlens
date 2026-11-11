@@ -49,6 +49,9 @@ class OpenTraceRequest:
     owner: str  # the issuing principal, e.g. "user:alice"
     declared: list[ConstraintSpec] = field(default_factory=list)  # org / system policies
     risk_class: RiskClass = "high"
+    #: False: register only ``declared`` (callers that already hold structured
+    #: constraints, e.g. benchmark replay; ADR 0009). The instruction is still T_0.
+    extract: bool = True
 
 
 @dataclass(frozen=True)
@@ -89,8 +92,10 @@ class OpenTrace:
             risk_class=request.risk_class,
             max_age_seconds=self._default_max_age_s,
         )
-        extraction = await extract(
-            request.instruction, context, judge=self._judge, llm_mode=self._llm_mode
+        extraction = (
+            await extract(request.instruction, context, judge=self._judge, llm_mode=self._llm_mode)
+            if request.extract
+            else ExtractionResult(specs=[], sources=[])
         )
 
         specs = [*extraction.specs, *(self._with_default_age(s) for s in request.declared)]

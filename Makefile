@@ -1,7 +1,7 @@
 # ConstraintLens developer tasks (ARCHITECTURE.md §19.2).
 # Targets for later phases fail loudly instead of pretending to work.
 
-.PHONY: setup test extraction-eval coverage-domain lint format-check format typecheck imports check integration eval bench bench-validate demo demo-baseline demo-protected demo-async latency serve
+.PHONY: setup test extraction-eval attribution-eval coverage-domain lint format-check format typecheck imports check integration eval bench bench-validate demo demo-baseline demo-protected demo-async latency serve
 
 setup:
 	uv sync --all-extras
@@ -14,6 +14,10 @@ test:
 extraction-eval:
 	uv run python -m eval.extraction_accuracy --out eval/reports
 	uv run python -m eval.extraction_accuracy --gold eval/extraction/probe_v1.jsonl --out eval/reports
+
+# Phase 7 exit criterion: attribution accuracy on the benchmark val split (needs `make bench`).
+attribution-eval:
+	uv run python -m eval.attribution_accuracy --out eval/reports
 
 # 90% line coverage target on the domain core (§20).
 coverage-domain:

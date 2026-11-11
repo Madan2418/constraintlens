@@ -213,9 +213,9 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
       <h1>ConstraintLens build log</h1>
       <p class="lede">A runtime framework that detects semantic constraint drift in asynchronous multi-agent AI systems. It checks that a constraint such as "refund up to $100" still means the same thing after each agent rewrites the task, and it blocks the tool call when the meaning has been lost.</p>
       <div class="status-bar">
-        <span class="pill ok"><span class="dot"></span>Phases 0–6 complete · Phase 7 next</span>
-        <span class="pill neutral">Sessions logged: 8</span>
-        <span class="pill neutral">Last updated 2026-11-09</span>
+        <span class="pill ok"><span class="dot"></span>Phases 0–7 complete · Phase 8 next</span>
+        <span class="pill neutral">Sessions logged: 9</span>
+        <span class="pill neutral">Last updated 2026-11-11</span>
         <span class="pill neutral">Python 3.11+ · FastAPI · React</span>
       </div>
       <div class="grid3">
@@ -442,8 +442,8 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
         <div class="phase"><span class="num">P4</span><div><h4>Async boundary</h4><p>Redis Streams transport, async guard (staleness, reordering, loss, redelivery), idempotent verdicts.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P5</span><div><h4>Semantic tiers</h4><p>T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing, degraded path.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P6</span><div><h4>driftchain-bench</h4><p>6 scenarios × 9 operators, async profiles, seeded generator, JSONL schema, dataset card.</p></div><span class="pill ok">done</span></div>
-        <div class="phase"><span class="num">P7</span><div><h4>Attribution</h4><p>DAG edge deltas, fan-in, async-cause classification, replay endpoint.</p></div><span class="pill warn">next</span></div>
-        <div class="phase"><span class="num">P8</span><div><h4>Evaluation</h4><p>B0–B3, C1–C3 and embedding-only configs, threshold tuning on val, bootstrap CIs, <code>make eval</code>.</p></div><span class="pill neutral">planned</span></div>
+        <div class="phase"><span class="num">P7</span><div><h4>Attribution</h4><p>DAG edge deltas, fan-in, async-cause classification, replay endpoint.</p></div><span class="pill ok">done</span></div>
+        <div class="phase"><span class="num">P8</span><div><h4>Evaluation</h4><p>B0–B3, C1–C3 and embedding-only configs, threshold tuning on val, bootstrap CIs, <code>make eval</code>.</p></div><span class="pill warn">next</span></div>
         <div class="phase"><span class="num">P9</span><div><h4>Dashboard and CLI</h4><p>The six views previewed above, plus the Typer CLI.</p></div><span class="pill neutral">planned</span></div>
         <div class="phase"><span class="num">P10</span><div><h4>Hardening and write-up</h4><p>docker compose, threat model, dataset release, demo script.</p></div><span class="pill neutral">planned</span></div>
       </div>
@@ -573,6 +573,17 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
           <li><b>Paraphrase batch</b> (official anthropic SDK, default <code>claude-sonnet-5-5</code>, a different model from the judge): a rewrite is accepted only if every constraint feature survives, outputs are cached, and a <code>--max-calls</code> guard limits calls. Not run: no API key here, so v0.1.0 is template text.</li>
           <li><b>Hand validation</b>: a stratified blind 300-chain sample (all 48 drift cells plus controls), a sheet, a CSV template, a labeling guide, and an agreement report (Cohen's kappa, culprit-hop accuracy, inter-annotator kappa). <b>No human labels yet</b>, so the "agreement reported" exit criterion is open and Phase 8 tuning should wait for it.</li>
           <li>ADR 0008, the dataset card and the README are updated. Totals: 665 tests pass (2 real-Redis tests skipped locally), including a clean-export run; domain coverage 98%; ruff, mypy and import-linter (7/7) clean. Commit <code>a26d8ba</code>.</li>
+        </ul>
+      </div>
+      <div class="session" style="margin-top:22px">
+        <div class="meta"><h3>Session 9</h3><span class="pill neutral">2026-11-11</span><span class="pill ok">Phase 7 done</span><span class="pill ok">pushed</span></div>
+        <ul>
+          <li><b>Attribution as a view over the event log</b> (<code>domain/attribution.py</code>). It builds the hop DAG from the recorded checkpoints and verdicts, then takes E_k[c] as the minimum over every check of T_k: a semantic score when one exists, otherwise 0/1 from failures. Retries and tool sub-hops fold into their base hop.</li>
+          <li><b>Culprit</b> (§7.7): the first failing point in topological order. Fan-in uses the minimum-parent baseline, and a hop that only matches its worst parent passes the blame up to the nearest hop whose drop exceeds δ_min. Gradual drift is reported as <code>UNKNOWN</code> with no hop. When an action violated a constraint but no text drifted, the acting hop is named (<code>UNKNOWN</code>), unless an ancestor introduced an injected override (<code>INJECTION</code>).</li>
+          <li><b>Async causes</b>, decided at CONSUME: stale and not re-verified, or expired, is <code>STALE_CONTEXT</code>. Lost or changed constraints, or text altered in transit, is <code>TRANSIT_LOSS</code>. Both are blamed on the queue edge (no agent). The sweeper's publish-never-consumed is <code>TRANSIT_LOSS</code> on the edge out.</li>
+          <li><b>Service</b>: <code>GET /v1/traces/{id}/attribution</code> (computed now, θ / δ_min overridable). Close appends <code>ATTRIBUTION_COMPUTED</code> before <code>TRACE_CLOSED</code>, and the projection and trace summary expose it. Replay returns original and replayed attribution. <code>OpenTraceRequest.extract=False</code> registers declared specs only. The protected demos now print the attribution card, e.g. <code>h2 (triage) … cause REWRITE</code> and <code>h3 (queue edge) … STALE_CONTEXT</code>.</li>
+          <li><b>Exit criterion: accuracy on val</b> (<code>make attribution-eval</code>, 408 drifted chains). Rules only (T0/1a/1b, the system on this host): 70.8% hop accuracy at the default 300 s dwell, 85.0% with the age bound only. With an exact oracle text detector (an upper bound, not a system result) it is 100% hop and cause, with no attributions on controls. The remaining gap is detection (SCOPE_WIDEN 34%, NEGATION_FLIP 72%) and the untuned dwell threshold, which Phase 8 will tune.</li>
+          <li>ADR 0009, README section and status, Makefile target, report <code>eval/reports/attribution_val_v1.md</code>. Totals: 780 tests pass (2 real-Redis tests skipped locally), domain coverage 98% (attribution 96%), ruff and strict mypy clean. Host notes: Application Control now blocks the mypy and pytest launchers and grimp's Rust extension. mypy was reinstalled as pure Python and run with <code>python -m</code>. import-linter cannot run locally, so its layer contracts were checked by hand; CI runs it.</li>
         </ul>
       </div>
     </section>

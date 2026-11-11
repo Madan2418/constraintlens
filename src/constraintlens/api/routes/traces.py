@@ -15,6 +15,7 @@ from constraintlens.application.trace_queries import load_trace, summarise
 from constraintlens.domain.enforcement import Policy
 from constraintlens.domain.errors import InvalidEnvelope
 from constraintlens.domain.models import (
+    Attribution,
     CheckpointRequest,
     ConstraintSpec,
     Envelope,
@@ -52,6 +53,19 @@ class ReplayBody(_Body):
     fail_low_risk: str | None = None
     max_regrounds: int | None = Field(default=None, ge=0)
     escalate_approvals: bool | None = None
+    theta: float | None = Field(default=None, ge=0.0, le=1.0)  # attribution (§7.7)
+    delta_min: float | None = Field(default=None, ge=0.0, le=1.0)
+
+
+class AttributionResponse(BaseModel):
+    trace_id: UUID
+    status: str
+    outcome: str
+    params: dict[str, float]
+    through_event_id: int
+    attributions: list[Attribution]
+    #: What was recorded when the trace closed (ADR 0009); empty while it is open.
+    recorded: list[Attribution]
 
 
 @router.post("/traces", status_code=201)
@@ -115,6 +129,29 @@ async def get_events(
     return await c.store.read_after(after_event_id, trace_id=trace_id)
 
 
+@router.get("/traces/{trace_id}/attribution")
+async def get_attribution(
+    trace_id: UUID,
+    c: ContainerDep,
+    theta: Annotated[float | None, Query(ge=0.0, le=1.0)] = None,
+    delta_min: Annotated[float | None, Query(ge=0.0, le=1.0)] = None,
+) -> AttributionResponse:
+    """Culprit hop per failed constraint, computed now from the log (§7.7, §11.1)."""
+    state = await load_trace(c.store, trace_id)
+    report = await c.attribute(
+        trace_id, params=c.attribute.with_overrides(theta=theta, delta_min=delta_min)
+    )
+    return AttributionResponse(
+        trace_id=trace_id,
+        status=state.status,
+        outcome=state.outcome,
+        params=report.params.as_dict(),
+        through_event_id=report.through_event_id,
+        attributions=report.attributions,
+        recorded=state.attributions,
+    )
+
+
 @router.post("/traces/{trace_id}/replay")
 async def replay_trace(
     trace_id: UUID, c: ContainerDep, body: ReplayBody | None = None
@@ -136,6 +173,13 @@ async def replay_trace(
     except ValueError as exc:
         raise InvalidEnvelope(str(exc)) from exc
     items = await c.replay(trace_id, checker=checker, policy=policy)
+    params = c.attribute.with_overrides(theta=body.theta, delta_min=body.delta_min)
+    original = await c.attribute(trace_id, params=params)
+    replayed = await c.attribute(
+        trace_id,
+        params=params,
+        outcomes={i.event_id: i.outcome for i in items if i.outcome is not None},
+    )
     return {
         "trace_id": str(trace_id),
         "tiers": checker.tier_names,
@@ -153,4 +197,9 @@ async def replay_trace(
             }
             for i in items
         ],
+        "attribution": {
+            "params": params.as_dict(),
+            "original": [a.model_dump(mode="json") for a in original.attributions],
+            "replayed": [a.model_dump(mode="json") for a in replayed.attributions],
+        },
     }

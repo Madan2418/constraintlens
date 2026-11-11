@@ -1,0 +1,473 @@
+{
+  "benchmark": "driftchain-bench-v0.1.0-seed7-n4000.jsonl",
+  "split": "val",
+  "chains": 816,
+  "drifted": 408,
+  "params": {
+    "theta": 0.35,
+    "delta_min": 0.15
+  },
+  "generated_at": "2026-11-11T06:04:32+00:00",
+  "python": "3.13.15",
+  "results": {
+    "rules/default-dwell": {
+      "detector": "rules",
+      "dwell_threshold_s": 300.0,
+      "drifted": {
+        "n": 408,
+        "flagged": 0.9853,
+        "hop_accuracy": 0.7083,
+        "hop_accuracy_if_flagged": 0.7189,
+        "agent_accuracy": 0.5564,
+        "cause_accuracy_if_hop_correct": 0.7509
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "n": 54,
+          "flagged": 1.0,
+          "hop_accuracy": 0.7963,
+          "hop_accuracy_if_flagged": 0.7963,
+          "agent_accuracy": 0.6852,
+          "cause_accuracy_if_hop_correct": 0.8605
+        },
+        "INJECTED_INSTRUCTION": {
+          "n": 51,
+          "flagged": 1.0,
+          "hop_accuracy": 0.7451,
+          "hop_accuracy_if_flagged": 0.7451,
+          "agent_accuracy": 0.5098,
+          "cause_accuracy_if_hop_correct": 0.6842
+        },
+        "NEGATION_FLIP": {
+          "n": 46,
+          "flagged": 0.913,
+          "hop_accuracy": 0.6304,
+          "hop_accuracy_if_flagged": 0.6905,
+          "agent_accuracy": 0.5,
+          "cause_accuracy_if_hop_correct": 0.7586
+        },
+        "NUMERIC_LOOSEN": {
+          "n": 57,
+          "flagged": 1.0,
+          "hop_accuracy": 0.6667,
+          "hop_accuracy_if_flagged": 0.6667,
+          "agent_accuracy": 0.4737,
+          "cause_accuracy_if_hop_correct": 0.7105
+        },
+        "QUALIFIER_DELETE": {
+          "n": 46,
+          "flagged": 1.0,
+          "hop_accuracy": 0.7609,
+          "hop_accuracy_if_flagged": 0.7609,
+          "agent_accuracy": 0.6522,
+          "cause_accuracy_if_hop_correct": 0.8571
+        },
+        "SCOPE_WIDEN": {
+          "n": 53,
+          "flagged": 0.9623,
+          "hop_accuracy": 0.3774,
+          "hop_accuracy_if_flagged": 0.3922,
+          "agent_accuracy": 0.1698,
+          "cause_accuracy_if_hop_correct": 0.0
+        },
+        "STALE_CONTEXT": {
+          "n": 49,
+          "flagged": 1.0,
+          "hop_accuracy": 0.8776,
+          "hop_accuracy_if_flagged": 0.8776,
+          "agent_accuracy": 0.8776,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "n": 52,
+          "flagged": 1.0,
+          "hop_accuracy": 0.8269,
+          "hop_accuracy_if_flagged": 0.8269,
+          "agent_accuracy": 0.6154,
+          "cause_accuracy_if_hop_correct": 0.7442
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "n": 110,
+          "flagged": 1.0,
+          "hop_accuracy": 0.6818,
+          "hop_accuracy_if_flagged": 0.6818,
+          "agent_accuracy": 0.4818,
+          "cause_accuracy_if_hop_correct": 0.7067
+        },
+        "fan_out": {
+          "n": 84,
+          "flagged": 0.9762,
+          "hop_accuracy": 0.619,
+          "hop_accuracy_if_flagged": 0.6341,
+          "agent_accuracy": 0.4405,
+          "cause_accuracy_if_hop_correct": 0.6538
+        },
+        "linear": {
+          "n": 214,
+          "flagged": 0.9813,
+          "hop_accuracy": 0.757,
+          "hop_accuracy_if_flagged": 0.7714,
+          "agent_accuracy": 0.6402,
+          "cause_accuracy_if_hop_correct": 0.8025
+        }
+      },
+      "violated_constraints": {
+        "n": 315,
+        "hop_accuracy": 0.6952
+      },
+      "controls": {
+        "n": 408,
+        "with_any_attribution": 0.7451,
+        "causes": {
+          "REWRITE": 74,
+          "STALE_CONTEXT": 379
+        }
+      }
+    },
+    "rules/age-only": {
+      "detector": "rules",
+      "dwell_threshold_s": 21600.0,
+      "drifted": {
+        "n": 408,
+        "flagged": 0.9608,
+        "hop_accuracy": 0.8505,
+        "hop_accuracy_if_flagged": 0.8852,
+        "agent_accuracy": 0.8505,
+        "cause_accuracy_if_hop_correct": 0.9452
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "n": 54,
+          "flagged": 1.0,
+          "hop_accuracy": 0.9815,
+          "hop_accuracy_if_flagged": 0.9815,
+          "agent_accuracy": 0.9815,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "INJECTED_INSTRUCTION": {
+          "n": 51,
+          "flagged": 0.9804,
+          "hop_accuracy": 0.902,
+          "hop_accuracy_if_flagged": 0.92,
+          "agent_accuracy": 0.902,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "NEGATION_FLIP": {
+          "n": 46,
+          "flagged": 0.8043,
+          "hop_accuracy": 0.7174,
+          "hop_accuracy_if_flagged": 0.8919,
+          "agent_accuracy": 0.7174,
+          "cause_accuracy_if_hop_correct": 0.9697
+        },
+        "NUMERIC_LOOSEN": {
+          "n": 57,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "QUALIFIER_DELETE": {
+          "n": 46,
+          "flagged": 1.0,
+          "hop_accuracy": 0.9348,
+          "hop_accuracy_if_flagged": 0.9348,
+          "agent_accuracy": 0.9348,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "SCOPE_WIDEN": {
+          "n": 53,
+          "flagged": 0.8868,
+          "hop_accuracy": 0.3396,
+          "hop_accuracy_if_flagged": 0.383,
+          "agent_accuracy": 0.3396,
+          "cause_accuracy_if_hop_correct": 0.0
+        },
+        "STALE_CONTEXT": {
+          "n": 49,
+          "flagged": 1.0,
+          "hop_accuracy": 0.9388,
+          "hop_accuracy_if_flagged": 0.9388,
+          "agent_accuracy": 0.9388,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "n": 52,
+          "flagged": 1.0,
+          "hop_accuracy": 0.9808,
+          "hop_accuracy_if_flagged": 0.9808,
+          "agent_accuracy": 0.9808,
+          "cause_accuracy_if_hop_correct": 1.0
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "n": 110,
+          "flagged": 0.9455,
+          "hop_accuracy": 0.8273,
+          "hop_accuracy_if_flagged": 0.875,
+          "agent_accuracy": 0.8273,
+          "cause_accuracy_if_hop_correct": 0.978
+        },
+        "fan_out": {
+          "n": 84,
+          "flagged": 0.9643,
+          "hop_accuracy": 0.7976,
+          "hop_accuracy_if_flagged": 0.8272,
+          "agent_accuracy": 0.7976,
+          "cause_accuracy_if_hop_correct": 0.9104
+        },
+        "linear": {
+          "n": 214,
+          "flagged": 0.9673,
+          "hop_accuracy": 0.8832,
+          "hop_accuracy_if_flagged": 0.913,
+          "agent_accuracy": 0.8832,
+          "cause_accuracy_if_hop_correct": 0.9418
+        }
+      },
+      "violated_constraints": {
+        "n": 315,
+        "hop_accuracy": 0.8762
+      },
+      "controls": {
+        "n": 408,
+        "with_any_attribution": 0.2794,
+        "causes": {
+          "REWRITE": 114
+        }
+      }
+    },
+    "oracle-text/default-dwell": {
+      "detector": "oracle-text",
+      "dwell_threshold_s": 300.0,
+      "drifted": {
+        "n": 408,
+        "flagged": 1.0,
+        "hop_accuracy": 0.8113,
+        "hop_accuracy_if_flagged": 0.8113,
+        "agent_accuracy": 0.6544,
+        "cause_accuracy_if_hop_correct": 0.8066
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "n": 54,
+          "flagged": 1.0,
+          "hop_accuracy": 0.7963,
+          "hop_accuracy_if_flagged": 0.7963,
+          "agent_accuracy": 0.6852,
+          "cause_accuracy_if_hop_correct": 0.8605
+        },
+        "INJECTED_INSTRUCTION": {
+          "n": 51,
+          "flagged": 1.0,
+          "hop_accuracy": 0.8431,
+          "hop_accuracy_if_flagged": 0.8431,
+          "agent_accuracy": 0.5882,
+          "cause_accuracy_if_hop_correct": 0.6977
+        },
+        "NEGATION_FLIP": {
+          "n": 46,
+          "flagged": 1.0,
+          "hop_accuracy": 0.8043,
+          "hop_accuracy_if_flagged": 0.8043,
+          "agent_accuracy": 0.6739,
+          "cause_accuracy_if_hop_correct": 0.8378
+        },
+        "NUMERIC_LOOSEN": {
+          "n": 57,
+          "flagged": 1.0,
+          "hop_accuracy": 0.6842,
+          "hop_accuracy_if_flagged": 0.6842,
+          "agent_accuracy": 0.4912,
+          "cause_accuracy_if_hop_correct": 0.7179
+        },
+        "QUALIFIER_DELETE": {
+          "n": 46,
+          "flagged": 1.0,
+          "hop_accuracy": 0.8043,
+          "hop_accuracy_if_flagged": 0.8043,
+          "agent_accuracy": 0.6739,
+          "cause_accuracy_if_hop_correct": 0.8378
+        },
+        "SCOPE_WIDEN": {
+          "n": 53,
+          "flagged": 1.0,
+          "hop_accuracy": 0.7925,
+          "hop_accuracy_if_flagged": 0.7925,
+          "agent_accuracy": 0.5849,
+          "cause_accuracy_if_hop_correct": 0.7381
+        },
+        "STALE_CONTEXT": {
+          "n": 49,
+          "flagged": 1.0,
+          "hop_accuracy": 0.9388,
+          "hop_accuracy_if_flagged": 0.9388,
+          "agent_accuracy": 0.9388,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "n": 52,
+          "flagged": 1.0,
+          "hop_accuracy": 0.8462,
+          "hop_accuracy_if_flagged": 0.8462,
+          "agent_accuracy": 0.6346,
+          "cause_accuracy_if_hop_correct": 0.75
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "n": 110,
+          "flagged": 1.0,
+          "hop_accuracy": 0.7727,
+          "hop_accuracy_if_flagged": 0.7727,
+          "agent_accuracy": 0.5727,
+          "cause_accuracy_if_hop_correct": 0.7412
+        },
+        "fan_out": {
+          "n": 84,
+          "flagged": 1.0,
+          "hop_accuracy": 0.7619,
+          "hop_accuracy_if_flagged": 0.7619,
+          "agent_accuracy": 0.5714,
+          "cause_accuracy_if_hop_correct": 0.75
+        },
+        "linear": {
+          "n": 214,
+          "flagged": 1.0,
+          "hop_accuracy": 0.8505,
+          "hop_accuracy_if_flagged": 0.8505,
+          "agent_accuracy": 0.729,
+          "cause_accuracy_if_hop_correct": 0.8571
+        }
+      },
+      "violated_constraints": {
+        "n": 315,
+        "hop_accuracy": 0.7968
+      },
+      "controls": {
+        "n": 408,
+        "with_any_attribution": 0.6373,
+        "causes": {
+          "STALE_CONTEXT": 409
+        }
+      }
+    },
+    "oracle-text/age-only": {
+      "detector": "oracle-text",
+      "dwell_threshold_s": 21600.0,
+      "drifted": {
+        "n": 408,
+        "flagged": 1.0,
+        "hop_accuracy": 1.0,
+        "hop_accuracy_if_flagged": 1.0,
+        "agent_accuracy": 1.0,
+        "cause_accuracy_if_hop_correct": 1.0
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "n": 54,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "INJECTED_INSTRUCTION": {
+          "n": 51,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "NEGATION_FLIP": {
+          "n": 46,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "NUMERIC_LOOSEN": {
+          "n": 57,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "QUALIFIER_DELETE": {
+          "n": 46,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "SCOPE_WIDEN": {
+          "n": 53,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "STALE_CONTEXT": {
+          "n": 49,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "n": 52,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "n": 110,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "fan_out": {
+          "n": 84,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        },
+        "linear": {
+          "n": 214,
+          "flagged": 1.0,
+          "hop_accuracy": 1.0,
+          "hop_accuracy_if_flagged": 1.0,
+          "agent_accuracy": 1.0,
+          "cause_accuracy_if_hop_correct": 1.0
+        }
+      },
+      "violated_constraints": {
+        "n": 315,
+        "hop_accuracy": 1.0
+      },
+      "controls": {
+        "n": 408,
+        "with_any_attribution": 0.0,
+        "causes": {}
+      }
+    }
+  }
+}

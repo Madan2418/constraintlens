@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pipelines.common.facts import Mutation, TaskFacts, mutate, parse
 
@@ -61,6 +61,7 @@ class RunResult:
     blocked: list[tuple[ToolCall, str]] = field(default_factory=list)  # protected runs only
     halted: str | None = None  # a CONSUME / PUBLISH checkpoint stopped the pipeline
     guard_notes: list[str] = field(default_factory=list)  # protected runs: holds, duplicates
+    attribution: list[str] = field(default_factory=list)  # protected runs: culprit hops (§7.7)
 
     @property
     def silent_violation(self) -> bool:
@@ -115,6 +116,7 @@ def render_report(result: RunResult) -> str:
     if result.halted:
         lines.append(f"Pipeline halted by ConstraintLens: {result.halted}")
     lines += [f"ConstraintLens: {n}" for n in result.guard_notes]
+    lines += [f"Attribution: {a}" for a in result.attribution]
     lines.append("")
     if result.violations:
         lines.append("Ground truth: VIOLATION of the user's constraint")
@@ -131,3 +133,21 @@ def render_report(result: RunResult) -> str:
         elif result.blocked or result.halted:
             lines.append("ConstraintLens stopped the pipeline before it acted (reason above).")
     return "\n".join(lines)
+
+
+def attribution_lines(closed: dict[str, Any]) -> list[str]:
+    """The attribution card (§7.7) of a closed trace, one line per failed constraint."""
+    texts = {c["constraint_id"]: c["canonical_text"] for c in closed.get("constraints", [])}
+    lines = []
+    for a in closed.get("attributions", []):
+        where = a["culprit_hop"] or "no single hop"
+        who = (
+            f" ({a['culprit_agent']})"
+            if a["culprit_agent"]
+            else (" (queue edge)" if a["culprit_hop"] else "")
+        )
+        lines.append(
+            f"{where}{who} lost {texts.get(a['constraint_id'], a['constraint_id'])!r}; "
+            f"cause {a['cause']}, delta {a['delta']:.2f}"
+        )
+    return lines

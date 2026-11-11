@@ -49,7 +49,14 @@ from constraintlens.adapters.transport.redis_streams import RedisStreamsTranspor
 from constraintlens.domain.models import ActionBinding, ConstraintSpec, Limit
 from constraintlens.sdk import ConstraintLens, ConstraintViolation, GuardedWorker
 from pipelines.baseline import procurement_redis_workers as baseline
-from pipelines.common.agents import START, HopRecord, RunResult, agent_step, render_report
+from pipelines.common.agents import (
+    START,
+    HopRecord,
+    RunResult,
+    agent_step,
+    attribution_lines,
+    render_report,
+)
 from pipelines.common.facts import MUTATIONS, Mutation
 from pipelines.common.scenarios import PROCUREMENT, Scenario, ToolLedger
 from pipelines.refund_langgraph import client
@@ -196,7 +203,8 @@ async def run(
     finally:
         await redis.delete(*streams)
         await redis.aclose()
-    await cl.close_trace(opened.trace_id)
+    closed = await cl.close_trace(opened.trace_id)
+    result.attribution = attribution_lines(closed)
     result.tool_calls = list(ledger.calls)
     result.blocked = list(ledger.blocked)
     result.violations = scenario.oracle(ledger, org_policy)

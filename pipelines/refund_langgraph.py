@@ -31,7 +31,14 @@ from constraintlens.adapters.pipeline.langgraph import LangGraphStateAdapter
 from constraintlens.domain.models import ActionBinding, ConstraintSpec, Limit
 from constraintlens.sdk import ConstraintLens, ConstraintViolation, current_hop
 from pipelines.baseline import refund_langgraph as baseline
-from pipelines.common.agents import HopRecord, RunResult, VirtualClock, agent_step, render_report
+from pipelines.common.agents import (
+    HopRecord,
+    RunResult,
+    VirtualClock,
+    agent_step,
+    attribution_lines,
+    render_report,
+)
 from pipelines.common.facts import MUTATIONS, Mutation
 from pipelines.common.scenarios import REFUND, Scenario, ToolLedger
 
@@ -165,7 +172,8 @@ async def run(
     except ConstraintViolation as exc:
         result.halted = exc.verdict.reason
     result.hops = log
-    await cl.close_trace(opened.trace_id)
+    closed = await cl.close_trace(opened.trace_id)
+    result.attribution = attribution_lines(closed)
     result.tool_calls = list(ledger.calls)
     result.blocked = list(ledger.blocked)
     result.violations = scenario.oracle(ledger, org_policy)

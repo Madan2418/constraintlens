@@ -1,5 +1,8 @@
 """Read-side use cases: close, summarise, replay, metrics (ARCHITECTURE.md §11.1, §12.1).
 
+``CloseTrace`` also triggers the final attribution (§11.1): the ``ATTRIBUTION_COMPUTED``
+event is appended in the same batch as ``TRACE_CLOSED`` (ADR 0009).
+
 All of them are projections of the event log. ``ReplayTrace`` re-runs the checker and
 enforcement over the stored checkpoint requests with different parameters and writes
 nothing (§11.1 "no side effects"). It is how thresholds and ablations are explored
@@ -18,6 +21,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from constraintlens.domain.async_guard import GuardConfig
+from constraintlens.domain.attribution import CheckOutcome
 from constraintlens.domain.checker.pipeline import CheckContext
 from constraintlens.domain.enforcement import Policy, decide
 from constraintlens.domain.errors import UnknownTrace
@@ -27,6 +31,7 @@ from constraintlens.domain.projections import TraceState, base_hop_id, fold
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from constraintlens.application.attribute_trace import AttributeTrace
     from constraintlens.domain.checker.pipeline import TieredChecker
     from constraintlens.domain.ports import Clock, EventStore
 
@@ -39,24 +44,27 @@ async def load_trace(store: EventStore, trace_id: UUID) -> TraceState:
 
 
 class CloseTrace:
-    def __init__(self, *, store: EventStore, clock: Clock) -> None:
+    def __init__(
+        self, *, store: EventStore, clock: Clock, attribute: AttributeTrace | None = None
+    ) -> None:
         self._store = store
         self._clock = clock
+        self._attribute = attribute
 
     async def __call__(self, trace_id: UUID) -> TraceState:
         state = await load_trace(self._store, trace_id)
         if state.status == "open":
+            drafts = [await self._attribute.draft(trace_id)] if self._attribute else []
             state.status = "closed"  # outcome below is computed for the closed trace
-            await self._store.append(
-                [
-                    EventDraft(
-                        trace_id=trace_id,
-                        type="TRACE_CLOSED",
-                        occurred_at=self._clock.now(),
-                        payload={"outcome": state.outcome, "verdicts": len(state.verdicts)},
-                    )
-                ]
+            drafts.append(
+                EventDraft(
+                    trace_id=trace_id,
+                    type="TRACE_CLOSED",
+                    occurred_at=self._clock.now(),
+                    payload={"outcome": state.outcome, "verdicts": len(state.verdicts)},
+                )
             )
+            await self._store.append(drafts)
             state = await load_trace(self._store, trace_id)
         return state
 
@@ -71,6 +79,8 @@ def summarise(state: TraceState) -> dict[str, Any]:
         "held": [_verdict_row(v) for v in state.held],  # non-final (§9.4)
         "conflicts": [_verdict_row(v) for v in state.conflicts],  # non-final (ADR 0006)
         "transit_losses": state.transit_losses,  # §9.5 (d)
+        # The attribution recorded at close (ADR 0009); live: GET .../attribution.
+        "attributions": [a.model_dump(mode="json") for a in state.attributions],
         "last_event_id": state.last_event_id,
     }
 
@@ -97,6 +107,8 @@ class ReplayItem:
     replayed_reason: str
     original_held: bool = False
     replayed_held: bool = False
+    event_id: int = 0  # the CHECKPOINT_RECEIVED event that was re-checked
+    outcome: CheckOutcome | None = None  # what the re-check concluded (for attribution)
 
     @property
     def changed(self) -> bool:
@@ -161,6 +173,12 @@ class ReplayTrace:
                         replayed_reason=enf.reason,
                         original_held=bool(original and original.held),
                         replayed_held=result.held,
+                        event_id=event.event_id,
+                        outcome=CheckOutcome(
+                            scores=result.scores,
+                            failures=[f.failure for f in result.findings],
+                            final=not result.held,
+                        ),
                     )
                 )
             at_the_time.apply(event)

@@ -22,8 +22,9 @@ survey, review decks, diagrams) is in [`documentation/`](documentation/).
 | 4. Async boundary: Redis Streams transport, async guard, idempotent verdicts, Redis-worker adapter | **done** |
 | 5. Semantic tiers: T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing | **done** |
 | 6. Benchmark: driftchain-bench generator, 9 operators, 6 scenarios, 4,000 chains, locked schema, validation tooling | **done** (human validation labels pending) |
-| 7. Attribution | next |
-| 8–10 | planned |
+| 7. Attribution: DAG culprit hop, async causes, fan-in, `GET .../attribution`, replayed attribution | **done** |
+| 8. Evaluation | next |
+| 9–10 | planned |
 
 Extraction accuracy (rules only, `make extraction-eval`): 1.00 exact match on the
 100-instruction gold set, which is in-sample (same author as the rules), and 0.85 on a
@@ -138,6 +139,35 @@ own structural action check. **Hand-validation labels are still pending.** The b
 sample, the labeling guide and the agreement tooling are in
 `driftchain_bench/validation/`. See `driftchain_bench/DATASET_CARD.md` and
 `docs/decisions/0008-driftchain-bench.md`.
+
+## Attribution (Phase 7)
+
+When a trace fails, ConstraintLens names the hop that introduced the failure and why:
+`REWRITE`, `INJECTION`, `STALE_CONTEXT` or `TRANSIT_LOSS` (blamed on the queue edge,
+not an agent), or `UNKNOWN`. It is a view over the event log:
+
+```bash
+curl localhost:8000/v1/traces/<id>/attribution                # computed now
+curl "localhost:8000/v1/traces/<id>/attribution?delta_min=0.3"  # other parameters
+curl -X POST localhost:8000/v1/traces/<id>/replay -d '{"tiers": ["T0","T1a"]}'  # + replayed attribution
+```
+
+Closing a trace records the final attribution (`ATTRIBUTION_COMPUTED`), and the protected
+demos print it, e.g. `Attribution: h2 (triage) lost '... 100 USD ...'; cause REWRITE`.
+
+Attribution accuracy on driftchain-bench `val` (`make attribution-eval`; 408 drifted
+chains; correct = the labeled mutated hop):
+
+| detector | dwell threshold | hop accuracy |
+|---|---|---|
+| rules (T0, T1a, T1b), the system on this host | 300 s (default) | 70.8% |
+| rules | age bound only | 85.0% |
+| oracle text detector (upper bound, not a system result) | age bound only | 100.0% |
+
+The algorithm is exact when detection is. The gap is detection (scope widening and soft
+negations need the semantic tiers, which have not run here) and the untuned dwell
+threshold. See `eval/reports/attribution_val_v1.md` and
+`docs/decisions/0009-drift-attribution.md`.
 
 ## Quick start (development)
 

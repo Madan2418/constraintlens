@@ -17,11 +17,13 @@ from typing import TYPE_CHECKING
 
 from constraintlens.adapters.clock import SystemClock
 from constraintlens.adapters.store.sqlite import SQLiteEventStore
+from constraintlens.application.attribute_trace import AttributeTrace
 from constraintlens.application.open_trace import OpenTrace
 from constraintlens.application.sweep_transit import SweepTransitLoss
 from constraintlens.application.trace_queries import CloseTrace, ReplayTrace
 from constraintlens.application.verify_checkpoint import VerifyCheckpoint
 from constraintlens.domain.async_guard import GuardConfig
+from constraintlens.domain.attribution import AttributionParams
 from constraintlens.domain.checker.pipeline import TieredChecker
 from constraintlens.domain.checker.tier0_integrity import IntegrityTier
 from constraintlens.domain.checker.tier1a_action import ActionTier
@@ -132,6 +134,14 @@ def guard_from(settings: Settings) -> GuardConfig:
     )
 
 
+def attribution_params_from(settings: Settings) -> AttributionParams:
+    """§7.7: a hop fails below ``theta_low`` (the NLI not-entailed bound); ``delta_min``
+    filters noise; staleness is judged with the live guard's dwell threshold."""
+    return AttributionParams(
+        theta=settings.theta_low, delta_min=settings.delta_min, guard=guard_from(settings)
+    )
+
+
 def tier_deps_from(
     settings: Settings,
     *,
@@ -165,6 +175,7 @@ class Container:
     verify: VerifyCheckpoint
     close: CloseTrace
     replay: ReplayTrace
+    attribute: AttributeTrace
     sweep: SweepTransitLoss
     #: What a replay with no tier override re-runs: the live tiers, with Tier 2 cache-only.
     replay_checker: TieredChecker
@@ -190,6 +201,9 @@ class Container:
         # A checker passed in (tests, custom tiers) is replayed as is; the default one is
         # rebuilt with a cache-only judge so replay never spends money.
         replay_checker = checker or build_checker(clock, deps=replace(deps, call_judge=False))
+        attribute = AttributeTrace(
+            store=store, clock=clock, params=attribution_params_from(settings)
+        )
         return cls(
             settings=settings,
             store=store,
@@ -213,8 +227,9 @@ class Container:
                 redact_patterns=settings.redact_pattern_list,
                 guard=guard_from(settings),
             ),
-            close=CloseTrace(store=store, clock=clock),
+            close=CloseTrace(store=store, clock=clock, attribute=attribute),
             replay=ReplayTrace(store=store, guard=guard_from(settings)),
+            attribute=attribute,
             sweep=SweepTransitLoss(
                 store=store, clock=clock, consume_timeout_s=settings.consume_timeout_s
             ),

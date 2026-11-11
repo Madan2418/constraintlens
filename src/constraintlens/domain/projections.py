@@ -14,7 +14,7 @@ import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
-from constraintlens.domain.models import CheckpointRequest, Constraint, Verdict
+from constraintlens.domain.models import Attribution, CheckpointRequest, Constraint, Verdict
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -92,6 +92,9 @@ class TraceState:
     #: (trace, hop, checkpoint) -> fingerprint of the request its final verdict answered
     fingerprint_by_checkpoint: dict[str, str] = field(default_factory=dict)
     conflicts: list[Verdict] = field(default_factory=list)  # duplicates that differed (ADR 0006)
+    #: The latest recorded attribution (ATTRIBUTION_COMPUTED, written at close; ADR 0009).
+    attributions: list[Attribution] = field(default_factory=list)
+    attribution_params: dict[str, Any] = field(default_factory=dict)
     last_event_id: int = 0
     _open_checkpoint_event: int | None = None
     _open_fingerprint: str | None = None
@@ -157,6 +160,9 @@ class TraceState:
         elif event.type == "REGROUND_ISSUED":
             hop = base_hop_id(event.hop_id or "")
             self.regrounds_by_hop[hop] = self.regrounds_by_hop.get(hop, 0) + 1
+        elif event.type == "ATTRIBUTION_COMPUTED":
+            self.attributions = [Attribution.model_validate(a) for a in p["attributions"]]
+            self.attribution_params = dict(p.get("params", {}))
         elif event.type == "TRACE_CLOSED":
             self.status = "closed"
         elif event.type == "WARNING" and p.get("refused"):
