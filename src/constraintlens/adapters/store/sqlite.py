@@ -93,7 +93,12 @@ verdicts = Table(
     Column("decision", String, nullable=False),
     Column("tier_used", String, nullable=False),
     Column("degraded", Boolean, nullable=False),
-    UniqueConstraint("trace_id", "hop_id", "checkpoint", name="uq_verdict_idempotency"),
+    # The envelope hop a CONSUME read ("" otherwise): a fan-in join has one CONSUME per
+    # parent message, each its own checkpoint (ADR 0010).
+    Column("consumed_hop_id", String, nullable=False, default=""),
+    UniqueConstraint(
+        "trace_id", "hop_id", "checkpoint", "consumed_hop_id", name="uq_verdict_idempotency"
+    ),
 )
 PROJECTIONS = (traces, constraints, verdicts)
 
@@ -285,6 +290,7 @@ async def _project(conn: AsyncConnection, e: Event) -> None:
                 decision=v["decision"],
                 tier_used=v["tier_used"],
                 degraded=bool(v["degraded"]),
+                consumed_hop_id=p.get("consumed_hop_id") or "",
             )
         )
     elif e.type == "TRACE_CLOSED":

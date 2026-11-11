@@ -1,0 +1,110 @@
+{
+  "status": "provisional",
+  "split": "val",
+  "config": "R",
+  "chains": 816,
+  "objective": "maximize detection recall subject to false-block rate <= 0.05 on val controls; ties: lower false-block rate, then the smaller threshold",
+  "bound_met": false,
+  "dwell_threshold_s": 14400,
+  "default_dwell_threshold_s": 300.0,
+  "theta_low": 0.35,
+  "theta_high": 0.8,
+  "delta_min": 0.15,
+  "untuned": [
+    "theta_low",
+    "theta_high",
+    "delta_min"
+  ],
+  "sweep": [
+    {
+      "dwell_threshold_s": 300,
+      "detection_recall": 0.9828,
+      "violation_prevention": 0.9639,
+      "false_block_rate": 0.5637,
+      "precision": 0.5688,
+      "f1": 0.7206,
+      "mean_detection_lag": 0.14,
+      "attribution_accuracy": 0.7083,
+      "composition_recall": 1.0
+    },
+    {
+      "dwell_threshold_s": 600,
+      "detection_recall": 0.9804,
+      "violation_prevention": 0.9639,
+      "false_block_rate": 0.5539,
+      "precision": 0.5714,
+      "f1": 0.722,
+      "mean_detection_lag": 0.15,
+      "attribution_accuracy": 0.7255,
+      "composition_recall": 1.0
+    },
+    {
+      "dwell_threshold_s": 900,
+      "detection_recall": 0.9706,
+      "violation_prevention": 0.9639,
+      "false_block_rate": 0.5221,
+      "precision": 0.5798,
+      "f1": 0.7259,
+      "mean_detection_lag": 0.162,
+      "attribution_accuracy": 0.7451,
+      "composition_recall": 1.0
+    },
+    {
+      "dwell_threshold_s": 1800,
+      "detection_recall": 0.9632,
+      "violation_prevention": 0.9639,
+      "false_block_rate": 0.2353,
+      "precision": 0.698,
+      "f1": 0.8095,
+      "mean_detection_lag": 0.216,
+      "attribution_accuracy": 0.8211,
+      "composition_recall": 1.0
+    },
+    {
+      "dwell_threshold_s": 3600,
+      "detection_recall": 0.9632,
+      "violation_prevention": 0.9639,
+      "false_block_rate": 0.2328,
+      "precision": 0.6993,
+      "f1": 0.8103,
+      "mean_detection_lag": 0.216,
+      "attribution_accuracy": 0.8211,
+      "composition_recall": 1.0
+    },
+    {
+      "dwell_threshold_s": 7200,
+      "detection_recall": 0.9608,
+      "violation_prevention": 0.9639,
+      "false_block_rate": 0.1618,
+      "precision": 0.7355,
+      "f1": 0.8332,
+      "mean_detection_lag": 0.219,
+      "attribution_accuracy": 0.8431,
+      "composition_recall": 1.0
+    },
+    {
+      "dwell_threshold_s": 14400,
+      "detection_recall": 0.9608,
+      "violation_prevention": 0.9639,
+      "false_block_rate": 0.0858,
+      "precision": 0.7747,
+      "f1": 0.8578,
+      "mean_detection_lag": 0.224,
+      "attribution_accuracy": 0.8505,
+      "composition_recall": 1.0
+    },
+    {
+      "dwell_threshold_s": 21600,
+      "detection_recall": 0.9608,
+      "violation_prevention": 0.9639,
+      "false_block_rate": 0.0858,
+      "precision": 0.7747,
+      "f1": 0.8578,
+      "mean_detection_lag": 0.224,
+      "attribution_accuracy": 0.8505,
+      "composition_recall": 1.0
+    }
+  ],
+  "benchmark": "driftchain-bench-v0.1.0-seed7-n4000.jsonl",
+  "generated_at": "2026-11-11T06:54:09+00:00"
+}

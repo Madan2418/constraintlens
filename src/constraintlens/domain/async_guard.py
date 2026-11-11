@@ -43,6 +43,9 @@ if TYPE_CHECKING:
 class GuardConfig:
     dwell_threshold_s: float = 300.0
     join_timeout_s: float = 60.0
+    #: False only for the "no async guard" ablation (§14.2 C3, ADR 0010): no staleness,
+    #: ordering or gap findings at all.
+    enabled: bool = True
 
 
 @dataclass(frozen=True)
@@ -79,7 +82,7 @@ def stale_constraints(
     config: GuardConfig,
 ) -> dict[UUID, str]:
     """``constraint_id -> why`` for every constraint needing re-verification at CONSUME."""
-    if request.checkpoint != "CONSUME":
+    if request.checkpoint != "CONSUME" or not config.enabled:
         return {}
     dwell = dwell_seconds(request, now)
     out: dict[UUID, str] = {}
@@ -140,7 +143,7 @@ def assess(
     key: str,
 ) -> GuardAssessment:
     """Every async finding for one checkpoint. Empty unless it is a ``CONSUME``."""
-    if request.checkpoint != "CONSUME":
+    if request.checkpoint != "CONSUME" or not config.enabled:
         return GuardAssessment()
     failures: list[Failure] = []
     hop = request.envelope.hop

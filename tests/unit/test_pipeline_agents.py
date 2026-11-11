@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from pipelines.common.agents import VirtualClock
@@ -28,6 +28,7 @@ def facts(draw: st.DrawFn) -> TaskFacts:
 
 @pytest.mark.parametrize("scenario", [REFUND, PROCUREMENT], ids=lambda s: s.name)
 @given(f=facts())
+@settings(deadline=None)  # pure parsing; a wall-clock deadline only flakes on a loaded host
 def test_relay_agents_preserve_what_they_read(scenario: Scenario, f: TaskFacts) -> None:
     """Hops 1 and 2 paraphrase without changing meaning unless a mutation is applied."""
     for role in scenario.roles[:2]:

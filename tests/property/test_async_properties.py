@@ -35,7 +35,7 @@ from constraintlens.domain.models import (
     ProposedAction,
     TransportMeta,
 )
-from constraintlens.domain.projections import default_idempotency_key, fold
+from constraintlens.domain.projections import fold, request_key
 from constraintlens.sdk import next_envelope
 from tests.factories import T0
 from tests.service_helpers import WORKED
@@ -114,12 +114,12 @@ def test_verdicts_are_idempotent_under_any_redelivery_order(
                 *(verify(reqs[j].model_copy(update={"transport_meta": TransportMeta(
                     delivery_count=1 + order[:i].count(j))})) for j in batch)
             )  # fmt: skip
-            for v in results:
-                responses[default_idempotency_key(v.trace_id, v.hop_id, v.checkpoint)].append(v)
+            for j, v in zip(batch, results, strict=True):
+                responses[request_key(reqs[j])].append(v)
 
         # Redeliver anything still held, now that every predecessor has been seen.
         for r in reqs:
-            key = default_idempotency_key(r.trace_id, r.hop_id, r.checkpoint)
+            key = request_key(r)
             if all(v.held for v in responses[key]):
                 responses[key].append(await verify(r))
 

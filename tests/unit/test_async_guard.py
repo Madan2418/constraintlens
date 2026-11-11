@@ -439,3 +439,25 @@ async def test_duplicate_with_a_different_action_is_checked_afresh() -> None:
     assert [(i.original_decision, i.changed) for i in items] == [
         ("ALLOW", False), ("BLOCK", False),
     ]  # fmt: skip
+
+
+def test_disabled_guard_reports_nothing() -> None:
+    """The "no async guard" ablation (§14.2 C3, ADR 0010) turns every finding off."""
+    from dataclasses import replace
+
+    from constraintlens.domain.async_guard import GuardConfig, assess, stale_constraints
+    from constraintlens.domain.models import CheckpointRequest
+    from constraintlens.domain.projections import HopHistory
+    from tests.factories import T0, make_constraint, make_envelope
+
+    c = make_constraint(max_age_seconds=60)
+    env = make_envelope(constraints=[c], parents=["never-seen"], hop_seq=5)
+    req = CheckpointRequest(trace_id=env.trace_id, hop_id="h9", checkpoint="CONSUME", envelope=env)
+    later = T0.replace(hour=T0.hour + 2)
+    on = GuardConfig()
+    assert stale_constraints(req, [c], later, on)
+    assert assess(req, [c], HopHistory(), later, on, key="k").failures
+    off = replace(on, enabled=False)
+    assert stale_constraints(req, [c], later, off) == {}
+    found = assess(req, [c], HopHistory(), later, off, key="k")
+    assert (found.failures, found.held, found.stale) == ([], False, {})

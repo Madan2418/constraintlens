@@ -23,8 +23,9 @@ survey, review decks, diagrams) is in [`documentation/`](documentation/).
 | 5. Semantic tiers: T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing | **done** |
 | 6. Benchmark: driftchain-bench generator, 9 operators, 6 scenarios, 4,000 chains, locked schema, validation tooling | **done** (human validation labels pending) |
 | 7. Attribution: DAG culprit hop, async causes, fan-in, `GET .../attribution`, replayed attribution | **done** |
-| 8. Evaluation | next |
-| 9–10 | planned |
+| 8. Evaluation: harness, all §14.2 configs, metrics, bootstrap CIs, figures, provisional val tuning, locked test split | **done on val** (test locked: needs human labels, NLI model, judge key) |
+| 9. Dashboard + CLI | next |
+| 10 | planned |
 
 Extraction accuracy (rules only, `make extraction-eval`): 1.00 exact match on the
 100-instruction gold set, which is in-sample (same author as the rules), and 0.85 on a
@@ -168,6 +169,38 @@ The algorithm is exact when detection is. The gap is detection (scope widening a
 negations need the semantic tiers, which have not run here) and the untuned dwell
 threshold. See `eval/reports/attribution_val_v1.md` and
 `docs/decisions/0009-drift-attribution.md`.
+
+## Evaluation (Phase 8)
+
+```bash
+make bench   # regenerate the benchmark (gitignored JSONL)
+make eval    # provisional tuning on val, every runnable config on val, attribution
+```
+
+Every §14.2 configuration is defined in `eval/configs`. The ones whose models are
+missing (C1/C2 need an NLI model and a judge; EMB needs an embedder) are reported as
+*not run*, never substituted. Results on `val` (816 chains; 95% bootstrap CIs; provisional
+thresholds):
+
+| config | detection recall | violation prevention | false-block rate |
+|---|---|---|---|
+| B0 no check | 0.0% | 0.0% | 0.0% |
+| B3 tool-arg check only | 55.9% | 82.3% | 0.0% |
+| **R** ConstraintLens, rules tiers (T0, T1a, T1b, async guard, composition) | **96.1%** [94.1, 97.8] | **96.4%** [93.9, 98.6] | **8.6%** [5.9, 11.4] |
+| oracle text detector (upper bound, not a system) | 100.0% | 96.0% | 0.0% |
+
+The ablations show each component carrying weight: without the async guard,
+STALE_CONTEXT recall falls from 100% to 18%; without composition, CONSTRAINT_DROP_ONE
+falls from 100% to 9%. The 8.6% false blocks are Tier 1b firing on hard-negative
+rewordings; re-verifying them is the semantic tiers' job. Tables, per-operator and async
+slices, latency, and figures: `eval/reports/eval_val_v1.md`, `eval/reports/figures/`.
+
+**The `test` split is locked** until thresholds are frozen
+(`eval/configs/thresholds.json`, `"status": "frozen"`), which needs the human validation
+labels and the semantic tiers. Each configuration can then be run on test once
+(`make eval-test`, recorded in `eval/reports/test_ledger.json`). The evaluation also
+found and fixed a fan-in idempotency bug (a join's second CONSUME was treated as a
+conflicting duplicate). See `docs/decisions/0010-evaluation-harness.md`.
 
 ## Quick start (development)
 

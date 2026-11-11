@@ -1,0 +1,2445 @@
+{
+  "benchmark": "driftchain-bench-v0.1.0-seed7-n4000.jsonl",
+  "split": "val",
+  "chains": 816,
+  "drifted": 408,
+  "thresholds": {
+    "status": "provisional",
+    "split": "val",
+    "config": "R",
+    "chains": 816,
+    "objective": "maximize detection recall subject to false-block rate <= 0.05 on val controls; ties: lower false-block rate, then the smaller threshold",
+    "bound_met": false,
+    "dwell_threshold_s": 14400,
+    "default_dwell_threshold_s": 300.0,
+    "theta_low": 0.35,
+    "theta_high": 0.8,
+    "delta_min": 0.15,
+    "untuned": [
+      "theta_low",
+      "theta_high",
+      "delta_min"
+    ],
+    "sweep": [
+      {
+        "dwell_threshold_s": 300,
+        "detection_recall": 0.9828,
+        "violation_prevention": 0.9639,
+        "false_block_rate": 0.5637,
+        "precision": 0.5688,
+        "f1": 0.7206,
+        "mean_detection_lag": 0.14,
+        "attribution_accuracy": 0.7083,
+        "composition_recall": 1.0
+      },
+      {
+        "dwell_threshold_s": 600,
+        "detection_recall": 0.9804,
+        "violation_prevention": 0.9639,
+        "false_block_rate": 0.5539,
+        "precision": 0.5714,
+        "f1": 0.722,
+        "mean_detection_lag": 0.15,
+        "attribution_accuracy": 0.7255,
+        "composition_recall": 1.0
+      },
+      {
+        "dwell_threshold_s": 900,
+        "detection_recall": 0.9706,
+        "violation_prevention": 0.9639,
+        "false_block_rate": 0.5221,
+        "precision": 0.5798,
+        "f1": 0.7259,
+        "mean_detection_lag": 0.162,
+        "attribution_accuracy": 0.7451,
+        "composition_recall": 1.0
+      },
+      {
+        "dwell_threshold_s": 1800,
+        "detection_recall": 0.9632,
+        "violation_prevention": 0.9639,
+        "false_block_rate": 0.2353,
+        "precision": 0.698,
+        "f1": 0.8095,
+        "mean_detection_lag": 0.216,
+        "attribution_accuracy": 0.8211,
+        "composition_recall": 1.0
+      },
+      {
+        "dwell_threshold_s": 3600,
+        "detection_recall": 0.9632,
+        "violation_prevention": 0.9639,
+        "false_block_rate": 0.2328,
+        "precision": 0.6993,
+        "f1": 0.8103,
+        "mean_detection_lag": 0.216,
+        "attribution_accuracy": 0.8211,
+        "composition_recall": 1.0
+      },
+      {
+        "dwell_threshold_s": 7200,
+        "detection_recall": 0.9608,
+        "violation_prevention": 0.9639,
+        "false_block_rate": 0.1618,
+        "precision": 0.7355,
+        "f1": 0.8332,
+        "mean_detection_lag": 0.219,
+        "attribution_accuracy": 0.8431,
+        "composition_recall": 1.0
+      },
+      {
+        "dwell_threshold_s": 14400,
+        "detection_recall": 0.9608,
+        "violation_prevention": 0.9639,
+        "false_block_rate": 0.0858,
+        "precision": 0.7747,
+        "f1": 0.8578,
+        "mean_detection_lag": 0.224,
+        "attribution_accuracy": 0.8505,
+        "composition_recall": 1.0
+      },
+      {
+        "dwell_threshold_s": 21600,
+        "detection_recall": 0.9608,
+        "violation_prevention": 0.9639,
+        "false_block_rate": 0.0858,
+        "precision": 0.7747,
+        "f1": 0.8578,
+        "mean_detection_lag": 0.224,
+        "attribution_accuracy": 0.8505,
+        "composition_recall": 1.0
+      }
+    ],
+    "benchmark": "driftchain-bench-v0.1.0-seed7-n4000.jsonl",
+    "generated_at": "2026-11-11T06:54:09+00:00"
+  },
+  "host_capabilities": [],
+  "resamples": 1000,
+  "generated_at": "2026-11-11T06:55:19+00:00",
+  "python": "3.13.15",
+  "results": {
+    "B0": {
+      "label": "No check",
+      "description": "Pipeline runs unprotected.",
+      "analysis_only": false,
+      "run": true,
+      "chains": 816,
+      "drifted": 408,
+      "headline": {
+        "detection_recall": 0.0,
+        "violation_prevention": 0.0,
+        "false_block_rate": 0.0,
+        "precision": null,
+        "f1": null,
+        "mean_detection_lag": null,
+        "attribution_accuracy": 0.0,
+        "composition_recall": 0.0
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "chains": 54,
+          "drifted": 54,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "INJECTED_INSTRUCTION": {
+          "chains": 51,
+          "drifted": 51,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "NEGATION_FLIP": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "NONE": {
+          "chains": 408,
+          "drifted": 0,
+          "detection_recall": null,
+          "violation_prevention": null,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": null
+        },
+        "NUMERIC_LOOSEN": {
+          "chains": 57,
+          "drifted": 57,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "QUALIFIER_DELETE": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.0,
+          "violation_prevention": null,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "SCOPE_WIDEN": {
+          "chains": 53,
+          "drifted": 53,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "STALE_CONTEXT": {
+          "chains": 49,
+          "drifted": 49,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "chains": 52,
+          "drifted": 52,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "chains": 217,
+          "drifted": 110,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.0
+        },
+        "fan_out": {
+          "chains": 200,
+          "drifted": 84,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.0
+        },
+        "linear": {
+          "chains": 399,
+          "drifted": 214,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.0
+        }
+      },
+      "async": {
+        "dwell": {
+          "hours": {
+            "chains": 195,
+            "drifted": 117,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "immediate": {
+            "chains": 289,
+            "drifted": 141,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "minutes": {
+            "chains": 332,
+            "drifted": 150,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          }
+        },
+        "reorder": {
+          "False": {
+            "chains": 615,
+            "drifted": 310,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "True": {
+            "chains": 201,
+            "drifted": 98,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          }
+        },
+        "redelivery": {
+          "False": {
+            "chains": 631,
+            "drifted": 318,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "True": {
+            "chains": 185,
+            "drifted": 90,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          }
+        },
+        "fan_in": {
+          "False": {
+            "chains": 599,
+            "drifted": 298,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "True": {
+            "chains": 217,
+            "drifted": 110,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          }
+        }
+      },
+      "redelivery_conflicts": 0,
+      "degraded_check_rate": null,
+      "checks": 0,
+      "latency_ms": {},
+      "ci95": {
+        "detection_recall": [
+          0.0,
+          0.0
+        ],
+        "violation_prevention": [
+          0.0,
+          0.0
+        ],
+        "false_block_rate": [
+          0.0,
+          0.0
+        ],
+        "precision": null,
+        "f1": null,
+        "mean_detection_lag": null,
+        "attribution_accuracy": [
+          0.0,
+          0.0
+        ],
+        "composition_recall": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "B1": {
+      "label": "Presence-only",
+      "description": "Constraint object present and hash intact (Tier 0 integrity) at every checkpoint.",
+      "analysis_only": false,
+      "run": true,
+      "chains": 816,
+      "drifted": 408,
+      "headline": {
+        "detection_recall": 0.0,
+        "violation_prevention": 0.0,
+        "false_block_rate": 0.0,
+        "precision": null,
+        "f1": null,
+        "mean_detection_lag": null,
+        "attribution_accuracy": 0.0,
+        "composition_recall": 0.0
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "chains": 54,
+          "drifted": 54,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "INJECTED_INSTRUCTION": {
+          "chains": 51,
+          "drifted": 51,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "NEGATION_FLIP": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "NONE": {
+          "chains": 408,
+          "drifted": 0,
+          "detection_recall": null,
+          "violation_prevention": null,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": null
+        },
+        "NUMERIC_LOOSEN": {
+          "chains": 57,
+          "drifted": 57,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "QUALIFIER_DELETE": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.0,
+          "violation_prevention": null,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "SCOPE_WIDEN": {
+          "chains": 53,
+          "drifted": 53,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "STALE_CONTEXT": {
+          "chains": 49,
+          "drifted": 49,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "chains": 52,
+          "drifted": 52,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "chains": 217,
+          "drifted": 110,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.0
+        },
+        "fan_out": {
+          "chains": 200,
+          "drifted": 84,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.0
+        },
+        "linear": {
+          "chains": 399,
+          "drifted": 214,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.0
+        }
+      },
+      "async": {
+        "dwell": {
+          "hours": {
+            "chains": 195,
+            "drifted": 117,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "immediate": {
+            "chains": 289,
+            "drifted": 141,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "minutes": {
+            "chains": 332,
+            "drifted": 150,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          }
+        },
+        "reorder": {
+          "False": {
+            "chains": 615,
+            "drifted": 310,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "True": {
+            "chains": 201,
+            "drifted": 98,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          }
+        },
+        "redelivery": {
+          "False": {
+            "chains": 631,
+            "drifted": 318,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "True": {
+            "chains": 185,
+            "drifted": 90,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          }
+        },
+        "fan_in": {
+          "False": {
+            "chains": 599,
+            "drifted": 298,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          },
+          "True": {
+            "chains": 217,
+            "drifted": 110,
+            "detection_recall": 0.0,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.0
+          }
+        }
+      },
+      "redelivery_conflicts": 0,
+      "degraded_check_rate": 0.0,
+      "checks": 7375,
+      "latency_ms": {
+        "T0": {
+          "p50": 0.154,
+          "p95": 0.342,
+          "p99": 0.522,
+          "n": 7173.0
+        },
+        "end_to_end": {
+          "p50": 0.154,
+          "p95": 0.342,
+          "p99": 0.522,
+          "n": 7173.0
+        }
+      },
+      "ci95": {
+        "detection_recall": [
+          0.0,
+          0.0
+        ],
+        "violation_prevention": [
+          0.0,
+          0.0
+        ],
+        "false_block_rate": [
+          0.0,
+          0.0
+        ],
+        "precision": null,
+        "f1": null,
+        "mean_detection_lag": null,
+        "attribution_accuracy": [
+          0.0,
+          0.0
+        ],
+        "composition_recall": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "B2": {
+      "label": "One-shot gate",
+      "description": "A single text check at the first hop only (CONSUME of T_0 and PUBLISH of T_1). Without an NLI model the check is Tier 1b, the strongest text tier available.",
+      "analysis_only": false,
+      "run": true,
+      "chains": 816,
+      "drifted": 408,
+      "headline": {
+        "detection_recall": 0.2034,
+        "violation_prevention": 0.0,
+        "false_block_rate": 0.0,
+        "precision": 0.6975,
+        "f1": 0.315,
+        "mean_detection_lag": 0.0,
+        "attribution_accuracy": 0.2034,
+        "composition_recall": 0.4259
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "chains": 54,
+          "drifted": 54,
+          "detection_recall": 0.4259,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.4259
+        },
+        "INJECTED_INSTRUCTION": {
+          "chains": 51,
+          "drifted": 51,
+          "detection_recall": 0.1176,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.1176
+        },
+        "NEGATION_FLIP": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.1957,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.1957
+        },
+        "NONE": {
+          "chains": 408,
+          "drifted": 0,
+          "detection_recall": null,
+          "violation_prevention": null,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": null
+        },
+        "NUMERIC_LOOSEN": {
+          "chains": 57,
+          "drifted": 57,
+          "detection_recall": 0.2982,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.2982
+        },
+        "QUALIFIER_DELETE": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.3478,
+          "violation_prevention": null,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.3478
+        },
+        "SCOPE_WIDEN": {
+          "chains": 53,
+          "drifted": 53,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "STALE_CONTEXT": {
+          "chains": 49,
+          "drifted": 49,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "chains": 52,
+          "drifted": 52,
+          "detection_recall": 0.2308,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.2308
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "chains": 217,
+          "drifted": 110,
+          "detection_recall": 0.1636,
+          "violation_prevention": 0.0,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.1636
+        },
+        "fan_out": {
+          "chains": 200,
+          "drifted": 84,
+          "detection_recall": 0.2143,
+          "violation_prevention": 0.0,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.2143
+        },
+        "linear": {
+          "chains": 399,
+          "drifted": 214,
+          "detection_recall": 0.2196,
+          "violation_prevention": 0.0,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.2196
+        }
+      },
+      "async": {
+        "dwell": {
+          "hours": {
+            "chains": 195,
+            "drifted": 117,
+            "detection_recall": 0.188,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.188
+          },
+          "immediate": {
+            "chains": 289,
+            "drifted": 141,
+            "detection_recall": 0.2199,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.2199
+          },
+          "minutes": {
+            "chains": 332,
+            "drifted": 150,
+            "detection_recall": 0.2,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.2
+          }
+        },
+        "reorder": {
+          "False": {
+            "chains": 615,
+            "drifted": 310,
+            "detection_recall": 0.2129,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.2129
+          },
+          "True": {
+            "chains": 201,
+            "drifted": 98,
+            "detection_recall": 0.1735,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1735
+          }
+        },
+        "redelivery": {
+          "False": {
+            "chains": 631,
+            "drifted": 318,
+            "detection_recall": 0.1981,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1981
+          },
+          "True": {
+            "chains": 185,
+            "drifted": 90,
+            "detection_recall": 0.2222,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.2222
+          }
+        },
+        "fan_in": {
+          "False": {
+            "chains": 599,
+            "drifted": 298,
+            "detection_recall": 0.2181,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.2181
+          },
+          "True": {
+            "chains": 217,
+            "drifted": 110,
+            "detection_recall": 0.1636,
+            "violation_prevention": 0.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1636
+          }
+        }
+      },
+      "redelivery_conflicts": 0,
+      "degraded_check_rate": 0.0,
+      "checks": 1675,
+      "latency_ms": {
+        "T0": {
+          "p50": 0.164,
+          "p95": 0.339,
+          "p99": 0.542,
+          "n": 1632.0
+        },
+        "T1b": {
+          "p50": 0.15,
+          "p95": 0.317,
+          "p99": 0.452,
+          "n": 1632.0
+        },
+        "end_to_end": {
+          "p50": 0.319,
+          "p95": 0.649,
+          "p99": 0.98,
+          "n": 1632.0
+        }
+      },
+      "ci95": {
+        "detection_recall": [
+          0.1646,
+          0.2437
+        ],
+        "violation_prevention": [
+          0.0,
+          0.0
+        ],
+        "false_block_rate": [
+          0.0,
+          0.0
+        ],
+        "precision": [
+          0.6106,
+          0.782
+        ],
+        "f1": [
+          0.2624,
+          0.3659
+        ],
+        "mean_detection_lag": [
+          0.0,
+          0.0
+        ],
+        "attribution_accuracy": [
+          0.1646,
+          0.2437
+        ],
+        "composition_recall": [
+          0.2941,
+          0.5652
+        ]
+      }
+    },
+    "B3": {
+      "label": "Tool-arg check only",
+      "description": "Tier 1a only, at the tool call.",
+      "analysis_only": false,
+      "run": true,
+      "chains": 816,
+      "drifted": 408,
+      "headline": {
+        "detection_recall": 0.5588,
+        "violation_prevention": 0.8231,
+        "false_block_rate": 0.0,
+        "precision": 1.0,
+        "f1": 0.717,
+        "mean_detection_lag": 1.325,
+        "attribution_accuracy": 0.1863,
+        "composition_recall": 0.9444
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "chains": 54,
+          "drifted": 54,
+          "detection_recall": 0.9444,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.2222
+        },
+        "INJECTED_INSTRUCTION": {
+          "chains": 51,
+          "drifted": 51,
+          "detection_recall": 0.8431,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.2549
+        },
+        "NEGATION_FLIP": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.3261,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.1739
+        },
+        "NONE": {
+          "chains": 408,
+          "drifted": 0,
+          "detection_recall": null,
+          "violation_prevention": null,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": null
+        },
+        "NUMERIC_LOOSEN": {
+          "chains": 57,
+          "drifted": 57,
+          "detection_recall": 0.4737,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.2105
+        },
+        "QUALIFIER_DELETE": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.0,
+          "violation_prevention": null,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "SCOPE_WIDEN": {
+          "chains": 53,
+          "drifted": 53,
+          "detection_recall": 0.8868,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.3396
+        },
+        "STALE_CONTEXT": {
+          "chains": 49,
+          "drifted": 49,
+          "detection_recall": 0.0,
+          "violation_prevention": 0.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "chains": 52,
+          "drifted": 52,
+          "detection_recall": 0.8654,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.25
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "chains": 217,
+          "drifted": 110,
+          "detection_recall": 0.4364,
+          "violation_prevention": 0.7273,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.1091
+        },
+        "fan_out": {
+          "chains": 200,
+          "drifted": 84,
+          "detection_recall": 0.5119,
+          "violation_prevention": 0.86,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.2143
+        },
+        "linear": {
+          "chains": 399,
+          "drifted": 214,
+          "detection_recall": 0.6402,
+          "violation_prevention": 0.8509,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.215
+        }
+      },
+      "async": {
+        "dwell": {
+          "hours": {
+            "chains": 195,
+            "drifted": 117,
+            "detection_recall": 0.359,
+            "violation_prevention": 0.4615,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1111
+          },
+          "immediate": {
+            "chains": 289,
+            "drifted": 141,
+            "detection_recall": 0.7092,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.2624
+          },
+          "minutes": {
+            "chains": 332,
+            "drifted": 150,
+            "detection_recall": 0.5733,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1733
+          }
+        },
+        "reorder": {
+          "False": {
+            "chains": 615,
+            "drifted": 310,
+            "detection_recall": 0.5839,
+            "violation_prevention": 0.8341,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1839
+          },
+          "True": {
+            "chains": 201,
+            "drifted": 98,
+            "detection_recall": 0.4796,
+            "violation_prevention": 0.7833,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1939
+          }
+        },
+        "redelivery": {
+          "False": {
+            "chains": 631,
+            "drifted": 318,
+            "detection_recall": 0.5535,
+            "violation_prevention": 0.8263,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1855
+          },
+          "True": {
+            "chains": 185,
+            "drifted": 90,
+            "detection_recall": 0.5778,
+            "violation_prevention": 0.8125,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1889
+          }
+        },
+        "fan_in": {
+          "False": {
+            "chains": 599,
+            "drifted": 298,
+            "detection_recall": 0.604,
+            "violation_prevention": 0.8531,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.2148
+          },
+          "True": {
+            "chains": 217,
+            "drifted": 110,
+            "detection_recall": 0.4364,
+            "violation_prevention": 0.7273,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.1091
+          }
+        }
+      },
+      "redelivery_conflicts": 0,
+      "degraded_check_rate": 0.0,
+      "checks": 816,
+      "latency_ms": {
+        "T1a": {
+          "p50": 0.082,
+          "p95": 0.199,
+          "p99": 0.303,
+          "n": 816.0
+        },
+        "end_to_end": {
+          "p50": 0.082,
+          "p95": 0.199,
+          "p99": 0.303,
+          "n": 816.0
+        }
+      },
+      "ci95": {
+        "detection_recall": [
+          0.5087,
+          0.6051
+        ],
+        "violation_prevention": [
+          0.7774,
+          0.864
+        ],
+        "false_block_rate": [
+          0.0,
+          0.0
+        ],
+        "precision": [
+          1.0,
+          1.0
+        ],
+        "f1": [
+          0.6743,
+          0.7539
+        ],
+        "mean_detection_lag": [
+          1.179,
+          1.477
+        ],
+        "attribution_accuracy": [
+          0.1485,
+          0.2238
+        ],
+        "composition_recall": [
+          0.8788,
+          1.0
+        ]
+      }
+    },
+    "R": {
+      "label": "ConstraintLens, rules tiers",
+      "description": "T0, T1a, T1b with the async guard and composition: C1 without Tier 1c.",
+      "analysis_only": false,
+      "run": true,
+      "chains": 816,
+      "drifted": 408,
+      "headline": {
+        "detection_recall": 0.9608,
+        "violation_prevention": 0.9639,
+        "false_block_rate": 0.0858,
+        "precision": 0.7747,
+        "f1": 0.8578,
+        "mean_detection_lag": 0.224,
+        "attribution_accuracy": 0.8505,
+        "composition_recall": 1.0
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "chains": 54,
+          "drifted": 54,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9815
+        },
+        "INJECTED_INSTRUCTION": {
+          "chains": 51,
+          "drifted": 51,
+          "detection_recall": 0.9804,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.902
+        },
+        "NEGATION_FLIP": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.8043,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.7174
+        },
+        "NONE": {
+          "chains": 408,
+          "drifted": 0,
+          "detection_recall": null,
+          "violation_prevention": null,
+          "false_block_rate": 0.0858,
+          "attribution_accuracy": null
+        },
+        "NUMERIC_LOOSEN": {
+          "chains": 57,
+          "drifted": 57,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "QUALIFIER_DELETE": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 1.0,
+          "violation_prevention": null,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9348
+        },
+        "SCOPE_WIDEN": {
+          "chains": 53,
+          "drifted": 53,
+          "detection_recall": 0.8868,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.3396
+        },
+        "STALE_CONTEXT": {
+          "chains": 49,
+          "drifted": 49,
+          "detection_recall": 1.0,
+          "violation_prevention": 0.7959,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9388
+        },
+        "SUMMARIZATION_LOSS": {
+          "chains": 52,
+          "drifted": 52,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9808
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "chains": 217,
+          "drifted": 110,
+          "detection_recall": 0.9455,
+          "violation_prevention": 0.9697,
+          "false_block_rate": 0.0561,
+          "attribution_accuracy": 0.8273
+        },
+        "fan_out": {
+          "chains": 200,
+          "drifted": 84,
+          "detection_recall": 0.9643,
+          "violation_prevention": 0.94,
+          "false_block_rate": 0.1034,
+          "attribution_accuracy": 0.7976
+        },
+        "linear": {
+          "chains": 399,
+          "drifted": 214,
+          "detection_recall": 0.9673,
+          "violation_prevention": 0.9689,
+          "false_block_rate": 0.0919,
+          "attribution_accuracy": 0.8832
+        }
+      },
+      "async": {
+        "dwell": {
+          "hours": {
+            "chains": 195,
+            "drifted": 117,
+            "detection_recall": 0.9829,
+            "violation_prevention": 0.8901,
+            "false_block_rate": 0.0385,
+            "attribution_accuracy": 0.8889
+          },
+          "immediate": {
+            "chains": 289,
+            "drifted": 141,
+            "detection_recall": 0.9645,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.1081,
+            "attribution_accuracy": 0.8582
+          },
+          "minutes": {
+            "chains": 332,
+            "drifted": 150,
+            "detection_recall": 0.94,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.0879,
+            "attribution_accuracy": 0.8133
+          }
+        },
+        "reorder": {
+          "False": {
+            "chains": 615,
+            "drifted": 310,
+            "detection_recall": 0.9645,
+            "violation_prevention": 0.9631,
+            "false_block_rate": 0.0852,
+            "attribution_accuracy": 0.8548
+          },
+          "True": {
+            "chains": 201,
+            "drifted": 98,
+            "detection_recall": 0.949,
+            "violation_prevention": 0.9667,
+            "false_block_rate": 0.0874,
+            "attribution_accuracy": 0.8367
+          }
+        },
+        "redelivery": {
+          "False": {
+            "chains": 631,
+            "drifted": 318,
+            "detection_recall": 0.9623,
+            "violation_prevention": 0.9718,
+            "false_block_rate": 0.0799,
+            "attribution_accuracy": 0.8553
+          },
+          "True": {
+            "chains": 185,
+            "drifted": 90,
+            "detection_recall": 0.9556,
+            "violation_prevention": 0.9375,
+            "false_block_rate": 0.1053,
+            "attribution_accuracy": 0.8333
+          }
+        },
+        "fan_in": {
+          "False": {
+            "chains": 599,
+            "drifted": 298,
+            "detection_recall": 0.9664,
+            "violation_prevention": 0.9621,
+            "false_block_rate": 0.0963,
+            "attribution_accuracy": 0.8591
+          },
+          "True": {
+            "chains": 217,
+            "drifted": 110,
+            "detection_recall": 0.9455,
+            "violation_prevention": 0.9697,
+            "false_block_rate": 0.0561,
+            "attribution_accuracy": 0.8273
+          }
+        }
+      },
+      "redelivery_conflicts": 0,
+      "degraded_check_rate": 0.0153,
+      "checks": 7375,
+      "latency_ms": {
+        "T0": {
+          "p50": 0.182,
+          "p95": 0.419,
+          "p99": 0.658,
+          "n": 7173.0
+        },
+        "T1a": {
+          "p50": 0.105,
+          "p95": 0.347,
+          "p99": 0.523,
+          "n": 816.0
+        },
+        "T1b": {
+          "p50": 0.151,
+          "p95": 0.32,
+          "p99": 0.441,
+          "n": 6945.0
+        },
+        "end_to_end": {
+          "p50": 0.341,
+          "p95": 0.745,
+          "p99": 1.105,
+          "n": 7173.0
+        }
+      },
+      "ci95": {
+        "detection_recall": [
+          0.9407,
+          0.9783
+        ],
+        "violation_prevention": [
+          0.9387,
+          0.9858
+        ],
+        "false_block_rate": [
+          0.0588,
+          0.1137
+        ],
+        "precision": [
+          0.7366,
+          0.8139
+        ],
+        "f1": [
+          0.8318,
+          0.8821
+        ],
+        "mean_detection_lag": [
+          0.158,
+          0.296
+        ],
+        "attribution_accuracy": [
+          0.8161,
+          0.8856
+        ],
+        "composition_recall": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "C1": {
+      "label": "ConstraintLens, no Tier 2",
+      "description": "Tiers 0 to 1c.",
+      "analysis_only": false,
+      "run": false,
+      "reason": "needs nli"
+    },
+    "C2": {
+      "label": "ConstraintLens, full",
+      "description": "Tiers 0 to 2 with cache.",
+      "analysis_only": false,
+      "run": false,
+      "reason": "needs nli, judge"
+    },
+    "C3-T1b": {
+      "label": "Ablation: no lexical tier",
+      "description": "R without Tier 1b.",
+      "analysis_only": false,
+      "run": true,
+      "chains": 816,
+      "drifted": 408,
+      "headline": {
+        "detection_recall": 0.6789,
+        "violation_prevention": 0.9603,
+        "false_block_rate": 0.0,
+        "precision": 1.0,
+        "f1": 0.8088,
+        "mean_detection_lag": 1.09,
+        "attribution_accuracy": 0.3799,
+        "composition_recall": 0.9444
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "chains": 54,
+          "drifted": 54,
+          "detection_recall": 0.9444,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.2222
+        },
+        "INJECTED_INSTRUCTION": {
+          "chains": 51,
+          "drifted": 51,
+          "detection_recall": 0.8431,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.8431
+        },
+        "NEGATION_FLIP": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.3261,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.1739
+        },
+        "NONE": {
+          "chains": 408,
+          "drifted": 0,
+          "detection_recall": null,
+          "violation_prevention": null,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": null
+        },
+        "NUMERIC_LOOSEN": {
+          "chains": 57,
+          "drifted": 57,
+          "detection_recall": 0.4737,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.2105
+        },
+        "QUALIFIER_DELETE": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.0,
+          "violation_prevention": null,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0
+        },
+        "SCOPE_WIDEN": {
+          "chains": 53,
+          "drifted": 53,
+          "detection_recall": 0.8868,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.3396
+        },
+        "STALE_CONTEXT": {
+          "chains": 49,
+          "drifted": 49,
+          "detection_recall": 1.0,
+          "violation_prevention": 0.7755,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "chains": 52,
+          "drifted": 52,
+          "detection_recall": 0.8654,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.25
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "chains": 217,
+          "drifted": 110,
+          "detection_recall": 0.6,
+          "violation_prevention": 0.9545,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.3545
+        },
+        "fan_out": {
+          "chains": 200,
+          "drifted": 84,
+          "detection_recall": 0.5952,
+          "violation_prevention": 0.94,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.3214
+        },
+        "linear": {
+          "chains": 399,
+          "drifted": 214,
+          "detection_recall": 0.7523,
+          "violation_prevention": 0.9689,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 0.4159
+        }
+      },
+      "async": {
+        "dwell": {
+          "hours": {
+            "chains": 195,
+            "drifted": 117,
+            "detection_recall": 0.7778,
+            "violation_prevention": 0.8791,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.5641
+          },
+          "immediate": {
+            "chains": 289,
+            "drifted": 141,
+            "detection_recall": 0.7092,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.3617
+          },
+          "minutes": {
+            "chains": 332,
+            "drifted": 150,
+            "detection_recall": 0.5733,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.2533
+          }
+        },
+        "reorder": {
+          "False": {
+            "chains": 615,
+            "drifted": 310,
+            "detection_recall": 0.7,
+            "violation_prevention": 0.9631,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.3806
+          },
+          "True": {
+            "chains": 201,
+            "drifted": 98,
+            "detection_recall": 0.6122,
+            "violation_prevention": 0.95,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.3776
+          }
+        },
+        "redelivery": {
+          "False": {
+            "chains": 631,
+            "drifted": 318,
+            "detection_recall": 0.6698,
+            "violation_prevention": 0.9671,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.3836
+          },
+          "True": {
+            "chains": 185,
+            "drifted": 90,
+            "detection_recall": 0.7111,
+            "violation_prevention": 0.9375,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.3667
+          }
+        },
+        "fan_in": {
+          "False": {
+            "chains": 599,
+            "drifted": 298,
+            "detection_recall": 0.7081,
+            "violation_prevention": 0.9621,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.3893
+          },
+          "True": {
+            "chains": 217,
+            "drifted": 110,
+            "detection_recall": 0.6,
+            "violation_prevention": 0.9545,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 0.3545
+          }
+        }
+      },
+      "redelivery_conflicts": 0,
+      "degraded_check_rate": 0.016,
+      "checks": 7375,
+      "latency_ms": {
+        "T0": {
+          "p50": 0.178,
+          "p95": 0.429,
+          "p99": 0.645,
+          "n": 7173.0
+        },
+        "T1a": {
+          "p50": 0.105,
+          "p95": 0.334,
+          "p99": 0.53,
+          "n": 816.0
+        },
+        "end_to_end": {
+          "p50": 0.188,
+          "p95": 0.476,
+          "p99": 0.77,
+          "n": 7173.0
+        }
+      },
+      "ci95": {
+        "detection_recall": [
+          0.6334,
+          0.7241
+        ],
+        "violation_prevention": [
+          0.9349,
+          0.9831
+        ],
+        "false_block_rate": [
+          0.0,
+          0.0
+        ],
+        "precision": [
+          1.0,
+          1.0
+        ],
+        "f1": [
+          0.7756,
+          0.84
+        ],
+        "mean_detection_lag": [
+          0.956,
+          1.218
+        ],
+        "attribution_accuracy": [
+          0.3333,
+          0.4272
+        ],
+        "composition_recall": [
+          0.8788,
+          1.0
+        ]
+      }
+    },
+    "C3-guard": {
+      "label": "Ablation: no async guard",
+      "description": "R without staleness, ordering and gap checks.",
+      "analysis_only": false,
+      "run": true,
+      "chains": 816,
+      "drifted": 408,
+      "headline": {
+        "detection_recall": 0.8627,
+        "violation_prevention": 0.8375,
+        "false_block_rate": 0.0858,
+        "precision": 0.7554,
+        "f1": 0.8055,
+        "mean_detection_lag": 0.261,
+        "attribution_accuracy": 0.75,
+        "composition_recall": 1.0
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "chains": 54,
+          "drifted": 54,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9815
+        },
+        "INJECTED_INSTRUCTION": {
+          "chains": 51,
+          "drifted": 51,
+          "detection_recall": 0.9804,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.902
+        },
+        "NEGATION_FLIP": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.8043,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.7174
+        },
+        "NONE": {
+          "chains": 408,
+          "drifted": 0,
+          "detection_recall": null,
+          "violation_prevention": null,
+          "false_block_rate": 0.0858,
+          "attribution_accuracy": null
+        },
+        "NUMERIC_LOOSEN": {
+          "chains": 57,
+          "drifted": 57,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "QUALIFIER_DELETE": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 1.0,
+          "violation_prevention": null,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9348
+        },
+        "SCOPE_WIDEN": {
+          "chains": 53,
+          "drifted": 53,
+          "detection_recall": 0.8868,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.3396
+        },
+        "STALE_CONTEXT": {
+          "chains": 49,
+          "drifted": 49,
+          "detection_recall": 0.1837,
+          "violation_prevention": 0.0816,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.102
+        },
+        "SUMMARIZATION_LOSS": {
+          "chains": 52,
+          "drifted": 52,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9808
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "chains": 217,
+          "drifted": 110,
+          "detection_recall": 0.8273,
+          "violation_prevention": 0.7727,
+          "false_block_rate": 0.0561,
+          "attribution_accuracy": 0.7
+        },
+        "fan_out": {
+          "chains": 200,
+          "drifted": 84,
+          "detection_recall": 0.881,
+          "violation_prevention": 0.86,
+          "false_block_rate": 0.1034,
+          "attribution_accuracy": 0.7143
+        },
+        "linear": {
+          "chains": 399,
+          "drifted": 214,
+          "detection_recall": 0.8738,
+          "violation_prevention": 0.8571,
+          "false_block_rate": 0.0919,
+          "attribution_accuracy": 0.7897
+        }
+      },
+      "async": {
+        "dwell": {
+          "hours": {
+            "chains": 195,
+            "drifted": 117,
+            "detection_recall": 0.641,
+            "violation_prevention": 0.5055,
+            "false_block_rate": 0.0385,
+            "attribution_accuracy": 0.5385
+          },
+          "immediate": {
+            "chains": 289,
+            "drifted": 141,
+            "detection_recall": 0.9645,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.1081,
+            "attribution_accuracy": 0.8582
+          },
+          "minutes": {
+            "chains": 332,
+            "drifted": 150,
+            "detection_recall": 0.94,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.0879,
+            "attribution_accuracy": 0.8133
+          }
+        },
+        "reorder": {
+          "False": {
+            "chains": 615,
+            "drifted": 310,
+            "detection_recall": 0.8677,
+            "violation_prevention": 0.8433,
+            "false_block_rate": 0.0852,
+            "attribution_accuracy": 0.7581
+          },
+          "True": {
+            "chains": 201,
+            "drifted": 98,
+            "detection_recall": 0.8469,
+            "violation_prevention": 0.8167,
+            "false_block_rate": 0.0874,
+            "attribution_accuracy": 0.7245
+          }
+        },
+        "redelivery": {
+          "False": {
+            "chains": 631,
+            "drifted": 318,
+            "detection_recall": 0.8742,
+            "violation_prevention": 0.8451,
+            "false_block_rate": 0.0799,
+            "attribution_accuracy": 0.761
+          },
+          "True": {
+            "chains": 185,
+            "drifted": 90,
+            "detection_recall": 0.8222,
+            "violation_prevention": 0.8125,
+            "false_block_rate": 0.1053,
+            "attribution_accuracy": 0.7111
+          }
+        },
+        "fan_in": {
+          "False": {
+            "chains": 599,
+            "drifted": 298,
+            "detection_recall": 0.8758,
+            "violation_prevention": 0.8578,
+            "false_block_rate": 0.0963,
+            "attribution_accuracy": 0.7685
+          },
+          "True": {
+            "chains": 217,
+            "drifted": 110,
+            "detection_recall": 0.8273,
+            "violation_prevention": 0.7727,
+            "false_block_rate": 0.0561,
+            "attribution_accuracy": 0.7
+          }
+        }
+      },
+      "redelivery_conflicts": 0,
+      "degraded_check_rate": 0.0,
+      "checks": 7375,
+      "latency_ms": {
+        "T0": {
+          "p50": 0.17,
+          "p95": 0.471,
+          "p99": 0.813,
+          "n": 7173.0
+        },
+        "T1a": {
+          "p50": 0.108,
+          "p95": 0.352,
+          "p99": 0.663,
+          "n": 816.0
+        },
+        "T1b": {
+          "p50": 0.152,
+          "p95": 0.364,
+          "p99": 0.586,
+          "n": 6945.0
+        },
+        "end_to_end": {
+          "p50": 0.333,
+          "p95": 0.866,
+          "p99": 1.403,
+          "n": 7173.0
+        }
+      },
+      "ci95": {
+        "detection_recall": [
+          0.8282,
+          0.8943
+        ],
+        "violation_prevention": [
+          0.7934,
+          0.8768
+        ],
+        "false_block_rate": [
+          0.0588,
+          0.1137
+        ],
+        "precision": [
+          0.7152,
+          0.7969
+        ],
+        "f1": [
+          0.7756,
+          0.8328
+        ],
+        "mean_detection_lag": [
+          0.186,
+          0.342
+        ],
+        "attribution_accuracy": [
+          0.7095,
+          0.7922
+        ],
+        "composition_recall": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "C3-comp": {
+      "label": "Ablation: no composition",
+      "description": "R tracking only the user's constraint; org policies are not registered.",
+      "analysis_only": false,
+      "run": true,
+      "chains": 816,
+      "drifted": 408,
+      "headline": {
+        "detection_recall": 0.8407,
+        "violation_prevention": 0.787,
+        "false_block_rate": 0.0858,
+        "precision": 0.7505,
+        "f1": 0.7931,
+        "mean_detection_lag": 0.265,
+        "attribution_accuracy": 0.7255,
+        "composition_recall": 0.0
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "chains": 54,
+          "drifted": 54,
+          "detection_recall": 0.0926,
+          "violation_prevention": 0.0392,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.0556
+        },
+        "INJECTED_INSTRUCTION": {
+          "chains": 51,
+          "drifted": 51,
+          "detection_recall": 0.9804,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.902
+        },
+        "NEGATION_FLIP": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 0.8043,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.7174
+        },
+        "NONE": {
+          "chains": 408,
+          "drifted": 0,
+          "detection_recall": null,
+          "violation_prevention": null,
+          "false_block_rate": 0.0858,
+          "attribution_accuracy": null
+        },
+        "NUMERIC_LOOSEN": {
+          "chains": 57,
+          "drifted": 57,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "QUALIFIER_DELETE": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 1.0,
+          "violation_prevention": null,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9348
+        },
+        "SCOPE_WIDEN": {
+          "chains": 53,
+          "drifted": 53,
+          "detection_recall": 0.8868,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.3396
+        },
+        "STALE_CONTEXT": {
+          "chains": 49,
+          "drifted": 49,
+          "detection_recall": 1.0,
+          "violation_prevention": 0.7959,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9388
+        },
+        "SUMMARIZATION_LOSS": {
+          "chains": 52,
+          "drifted": 52,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 0.9615
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "chains": 217,
+          "drifted": 110,
+          "detection_recall": 0.8727,
+          "violation_prevention": 0.8333,
+          "false_block_rate": 0.0561,
+          "attribution_accuracy": 0.7364
+        },
+        "fan_out": {
+          "chains": 200,
+          "drifted": 84,
+          "detection_recall": 0.8333,
+          "violation_prevention": 0.74,
+          "false_block_rate": 0.1034,
+          "attribution_accuracy": 0.6667
+        },
+        "linear": {
+          "chains": 399,
+          "drifted": 214,
+          "detection_recall": 0.8271,
+          "violation_prevention": 0.7826,
+          "false_block_rate": 0.0919,
+          "attribution_accuracy": 0.743
+        }
+      },
+      "async": {
+        "dwell": {
+          "hours": {
+            "chains": 195,
+            "drifted": 117,
+            "detection_recall": 0.8803,
+            "violation_prevention": 0.7692,
+            "false_block_rate": 0.0385,
+            "attribution_accuracy": 0.7949
+          },
+          "immediate": {
+            "chains": 289,
+            "drifted": 141,
+            "detection_recall": 0.8369,
+            "violation_prevention": 0.81,
+            "false_block_rate": 0.1081,
+            "attribution_accuracy": 0.7163
+          },
+          "minutes": {
+            "chains": 332,
+            "drifted": 150,
+            "detection_recall": 0.8133,
+            "violation_prevention": 0.7791,
+            "false_block_rate": 0.0879,
+            "attribution_accuracy": 0.68
+          }
+        },
+        "reorder": {
+          "False": {
+            "chains": 615,
+            "drifted": 310,
+            "detection_recall": 0.8387,
+            "violation_prevention": 0.7788,
+            "false_block_rate": 0.0852,
+            "attribution_accuracy": 0.7226
+          },
+          "True": {
+            "chains": 201,
+            "drifted": 98,
+            "detection_recall": 0.8469,
+            "violation_prevention": 0.8167,
+            "false_block_rate": 0.0874,
+            "attribution_accuracy": 0.7347
+          }
+        },
+        "redelivery": {
+          "False": {
+            "chains": 631,
+            "drifted": 318,
+            "detection_recall": 0.8522,
+            "violation_prevention": 0.8075,
+            "false_block_rate": 0.0799,
+            "attribution_accuracy": 0.739
+          },
+          "True": {
+            "chains": 185,
+            "drifted": 90,
+            "detection_recall": 0.8,
+            "violation_prevention": 0.7188,
+            "false_block_rate": 0.1053,
+            "attribution_accuracy": 0.6778
+          }
+        },
+        "fan_in": {
+          "False": {
+            "chains": 599,
+            "drifted": 298,
+            "detection_recall": 0.8289,
+            "violation_prevention": 0.7725,
+            "false_block_rate": 0.0963,
+            "attribution_accuracy": 0.7215
+          },
+          "True": {
+            "chains": 217,
+            "drifted": 110,
+            "detection_recall": 0.8727,
+            "violation_prevention": 0.8333,
+            "false_block_rate": 0.0561,
+            "attribution_accuracy": 0.7364
+          }
+        }
+      },
+      "redelivery_conflicts": 0,
+      "degraded_check_rate": 0.0153,
+      "checks": 7375,
+      "latency_ms": {
+        "T0": {
+          "p50": 0.132,
+          "p95": 0.338,
+          "p99": 0.591,
+          "n": 7173.0
+        },
+        "T1a": {
+          "p50": 0.086,
+          "p95": 0.283,
+          "p99": 0.504,
+          "n": 816.0
+        },
+        "T1b": {
+          "p50": 0.104,
+          "p95": 0.228,
+          "p99": 0.354,
+          "n": 6996.0
+        },
+        "end_to_end": {
+          "p50": 0.245,
+          "p95": 0.58,
+          "p99": 0.961,
+          "n": 7173.0
+        }
+      },
+      "ci95": {
+        "detection_recall": [
+          0.8063,
+          0.8762
+        ],
+        "violation_prevention": [
+          0.7376,
+          0.8357
+        ],
+        "false_block_rate": [
+          0.0588,
+          0.1137
+        ],
+        "precision": [
+          0.7103,
+          0.7922
+        ],
+        "f1": [
+          0.7638,
+          0.8238
+        ],
+        "mean_detection_lag": [
+          0.188,
+          0.344
+        ],
+        "attribution_accuracy": [
+          0.6815,
+          0.7702
+        ],
+        "composition_recall": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "C3-T1c": {
+      "label": "Ablation: no NLI",
+      "description": "C2 without Tier 1c.",
+      "analysis_only": false,
+      "run": false,
+      "reason": "needs judge"
+    },
+    "C3-T2": {
+      "label": "Ablation: no judge",
+      "description": "C2 without Tier 2 (= C1).",
+      "analysis_only": false,
+      "run": false,
+      "reason": "needs nli"
+    },
+    "EMB": {
+      "label": "Embedding similarity only",
+      "description": "Cosine similarity of T_k to the canonical text, to show its numeric and negation blind spots (\u00a77.4).",
+      "analysis_only": false,
+      "run": false,
+      "reason": "needs embedder"
+    },
+    "ORACLE": {
+      "label": "Oracle text detector (analysis)",
+      "description": "T0, T1a and the benchmark's reference features: an upper bound, not a system.",
+      "analysis_only": true,
+      "run": true,
+      "chains": 816,
+      "drifted": 408,
+      "headline": {
+        "detection_recall": 1.0,
+        "violation_prevention": 0.9603,
+        "false_block_rate": 0.0,
+        "precision": 1.0,
+        "f1": 1.0,
+        "mean_detection_lag": 0.0,
+        "attribution_accuracy": 1.0,
+        "composition_recall": 1.0
+      },
+      "by_operator": {
+        "CONSTRAINT_DROP_ONE": {
+          "chains": 54,
+          "drifted": 54,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "INJECTED_INSTRUCTION": {
+          "chains": 51,
+          "drifted": 51,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "NEGATION_FLIP": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "NONE": {
+          "chains": 408,
+          "drifted": 0,
+          "detection_recall": null,
+          "violation_prevention": null,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": null
+        },
+        "NUMERIC_LOOSEN": {
+          "chains": 57,
+          "drifted": 57,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "QUALIFIER_DELETE": {
+          "chains": 46,
+          "drifted": 46,
+          "detection_recall": 1.0,
+          "violation_prevention": null,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "SCOPE_WIDEN": {
+          "chains": 53,
+          "drifted": 53,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "STALE_CONTEXT": {
+          "chains": 49,
+          "drifted": 49,
+          "detection_recall": 1.0,
+          "violation_prevention": 0.7755,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        },
+        "SUMMARIZATION_LOSS": {
+          "chains": 52,
+          "drifted": 52,
+          "detection_recall": 1.0,
+          "violation_prevention": 1.0,
+          "false_block_rate": null,
+          "attribution_accuracy": 1.0
+        }
+      },
+      "by_topology": {
+        "fan_in": {
+          "chains": 217,
+          "drifted": 110,
+          "detection_recall": 1.0,
+          "violation_prevention": 0.9545,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 1.0
+        },
+        "fan_out": {
+          "chains": 200,
+          "drifted": 84,
+          "detection_recall": 1.0,
+          "violation_prevention": 0.94,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 1.0
+        },
+        "linear": {
+          "chains": 399,
+          "drifted": 214,
+          "detection_recall": 1.0,
+          "violation_prevention": 0.9689,
+          "false_block_rate": 0.0,
+          "attribution_accuracy": 1.0
+        }
+      },
+      "async": {
+        "dwell": {
+          "hours": {
+            "chains": 195,
+            "drifted": 117,
+            "detection_recall": 1.0,
+            "violation_prevention": 0.8791,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 1.0
+          },
+          "immediate": {
+            "chains": 289,
+            "drifted": 141,
+            "detection_recall": 1.0,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 1.0
+          },
+          "minutes": {
+            "chains": 332,
+            "drifted": 150,
+            "detection_recall": 1.0,
+            "violation_prevention": 1.0,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 1.0
+          }
+        },
+        "reorder": {
+          "False": {
+            "chains": 615,
+            "drifted": 310,
+            "detection_recall": 1.0,
+            "violation_prevention": 0.9631,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 1.0
+          },
+          "True": {
+            "chains": 201,
+            "drifted": 98,
+            "detection_recall": 1.0,
+            "violation_prevention": 0.95,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 1.0
+          }
+        },
+        "redelivery": {
+          "False": {
+            "chains": 631,
+            "drifted": 318,
+            "detection_recall": 1.0,
+            "violation_prevention": 0.9671,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 1.0
+          },
+          "True": {
+            "chains": 185,
+            "drifted": 90,
+            "detection_recall": 1.0,
+            "violation_prevention": 0.9375,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 1.0
+          }
+        },
+        "fan_in": {
+          "False": {
+            "chains": 599,
+            "drifted": 298,
+            "detection_recall": 1.0,
+            "violation_prevention": 0.9621,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 1.0
+          },
+          "True": {
+            "chains": 217,
+            "drifted": 110,
+            "detection_recall": 1.0,
+            "violation_prevention": 0.9545,
+            "false_block_rate": 0.0,
+            "attribution_accuracy": 1.0
+          }
+        }
+      },
+      "redelivery_conflicts": 0,
+      "degraded_check_rate": 0.016,
+      "checks": 7375,
+      "latency_ms": {
+        "T0": {
+          "p50": 0.164,
+          "p95": 0.391,
+          "p99": 0.64,
+          "n": 7173.0
+        },
+        "T1a": {
+          "p50": 0.094,
+          "p95": 0.285,
+          "p99": 0.426,
+          "n": 816.0
+        },
+        "T1b": {
+          "p50": 0.064,
+          "p95": 0.148,
+          "p99": 0.24,
+          "n": 6945.0
+        },
+        "end_to_end": {
+          "p50": 0.235,
+          "p95": 0.567,
+          "p99": 0.871,
+          "n": 7173.0
+        }
+      },
+      "ci95": {
+        "detection_recall": [
+          1.0,
+          1.0
+        ],
+        "violation_prevention": [
+          0.9349,
+          0.9831
+        ],
+        "false_block_rate": [
+          0.0,
+          0.0
+        ],
+        "precision": [
+          1.0,
+          1.0
+        ],
+        "f1": [
+          1.0,
+          1.0
+        ],
+        "mean_detection_lag": [
+          0.0,
+          0.0
+        ],
+        "attribution_accuracy": [
+          1.0,
+          1.0
+        ],
+        "composition_recall": [
+          1.0,
+          1.0
+        ]
+      }
+    }
+  }
+}

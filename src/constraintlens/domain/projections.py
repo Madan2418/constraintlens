@@ -98,6 +98,7 @@ class TraceState:
     last_event_id: int = 0
     _open_checkpoint_event: int | None = None
     _open_fingerprint: str | None = None
+    _open_consumed: str | None = None  # the envelope hop a pending CONSUME read (ADR 0010)
 
     @property
     def outcome(self) -> Outcome:
@@ -130,9 +131,12 @@ class TraceState:
             if not p.get("conflict"):  # a conflicting duplicate is not trusted with history
                 self.history.observe(CheckpointRequest.model_validate(p["request"]), held=held)
             self._open_fingerprint = p.get("fingerprint")
+            r = p["request"]
+            self._open_consumed = r["envelope"]["hop"]["hop_id"]
             if held:
-                r = p["request"]
-                triple = default_idempotency_key(self.trace_id, r["hop_id"], r["checkpoint"])
+                triple = default_idempotency_key(
+                    self.trace_id, r["hop_id"], r["checkpoint"], self._open_consumed
+                )
                 self.history.held_since.setdefault(triple, event.occurred_at)
             self._open_checkpoint_event = event.event_id
         elif event.type == "WARNING" and p.get("conflict"):  # may also be held
@@ -149,13 +153,12 @@ class TraceState:
             verdict = Verdict.model_validate(p["verdict"])
             self._link(verdict)
             self.verdicts.append(verdict)
+            triple = default_idempotency_key(
+                verdict.trace_id, verdict.hop_id, verdict.checkpoint, self._open_consumed
+            )
             if self._open_fingerprint is not None:
-                triple = default_idempotency_key(
-                    verdict.trace_id, verdict.hop_id, verdict.checkpoint
-                )
                 self.fingerprint_by_checkpoint[triple] = self._open_fingerprint
             self.verdict_by_key[p["idempotency_key"]] = verdict
-            triple = default_idempotency_key(verdict.trace_id, verdict.hop_id, verdict.checkpoint)
             self.verdict_by_checkpoint[triple] = verdict
         elif event.type == "REGROUND_ISSUED":
             hop = base_hop_id(event.hop_id or "")
@@ -222,6 +225,22 @@ def base_hop_id(hop_id: str) -> str:
     return hop_id.split(RETRY_SEPARATOR, 1)[0]
 
 
-def default_idempotency_key(trace_id: UUID, hop_id: str, checkpoint: str) -> str:
-    """§9.6: verdicts are keyed by (trace_id, hop_id, checkpoint)."""
-    return f"{trace_id}:{hop_id}:{checkpoint}"
+def default_idempotency_key(
+    trace_id: UUID, hop_id: str, checkpoint: str, consumed: str | None = None
+) -> str:
+    """§9.6: verdicts are keyed by (trace_id, hop_id, checkpoint).
+
+    A CONSUME also names the envelope hop it reads (ADR 0010). A fan-in join consumes
+    one message per parent: each is its own checkpoint, and a redelivery of either gets
+    that message's stored verdict. Without the consumed hop, the second parent's
+    message collided with the first and was treated as a conflicting duplicate.
+    """
+    key = f"{trace_id}:{hop_id}:{checkpoint}"
+    return f"{key}<{consumed}" if checkpoint == "CONSUME" and consumed else key
+
+
+def request_key(request: CheckpointRequest) -> str:
+    """The default idempotency key of a checkpoint request."""
+    return default_idempotency_key(
+        request.trace_id, request.hop_id, request.checkpoint, request.envelope.hop.hop_id
+    )

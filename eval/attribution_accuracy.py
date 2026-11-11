@@ -43,215 +43,32 @@ import argparse
 import asyncio
 import json
 import platform
-import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from constraintlens.adapters.clock import FrozenClock
-from constraintlens.adapters.store.memory import InMemoryStore
-from constraintlens.application.attribute_trace import AttributeTrace
-from constraintlens.application.open_trace import OpenTrace, OpenTraceRequest
-from constraintlens.application.verify_checkpoint import VerifyCheckpoint
-from constraintlens.domain.async_guard import GuardConfig
-from constraintlens.domain.attribution import AttributionParams
-from constraintlens.domain.checker.pipeline import Finding, TieredChecker, TierOutcome
-from constraintlens.domain.checker.tier0_integrity import IntegrityTier
-from constraintlens.domain.checker.tier1a_action import ActionTier
-from constraintlens.domain.checker.tier1b_lexical import LexicalTier
-from constraintlens.domain.enforcement import Policy
-from constraintlens.domain.models import (
-    ActionBinding,
-    CheckpointRequest,
-    ConstraintSpec,
-    Envelope,
-    Failure,
-    HopMeta,
-    ProposedAction,
-    TierId,
-    TransportMeta,
-)
 from driftchain_bench.generator import MAX_AGE_S, read_jsonl
-from driftchain_bench.reference import features
-from driftchain_bench.scenarios import load_scenarios
+from eval.configs import get
+from eval.metrics import EXPECTED_CAUSE
+from eval.runner import DEFAULT_DWELL_S, ChainRun
+from eval.runner import run_chain as _run
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from uuid import UUID
 
-    from constraintlens.domain.checker.pipeline import CheckContext, Tier
-    from constraintlens.domain.models import Attribution
     from driftchain_bench.record import ChainRec
 
 DATA = Path("driftchain_bench/data/driftchain-bench-v0.1.0-seed7-n4000.jsonl")
-T_ISSUE = datetime(2026, 1, 1, tzinfo=UTC)
-DEFAULT_DWELL_S = 300.0  # Settings.dwell_threshold_s
 SLICES: dict[str, float] = {"default-dwell": DEFAULT_DWELL_S, "age-only": float(MAX_AGE_S)}
-EXPECTED_CAUSE = {"STALE_CONTEXT": "STALE_CONTEXT", "INJECTED_INSTRUCTION": "INJECTION"}
+DETECTORS = {"rules": "R", "oracle-text": "ORACLE"}  # eval/configs ids
+ChainResult = ChainRun  # the Phase 7 name, kept for callers
 
 
-# --------------------------------------------------------------------------- #
-# Oracle detector (analysis only)
-# --------------------------------------------------------------------------- #
-
-
-class OracleTextTier:
-    """Flags a constraint when T_k's reference features differ from T_0's.
-
-    Reads the benchmark's own feature extractor, so it is exact on template text. It
-    gives no scores and does not re-verify staleness (``semantic = False``).
-    """
-
-    name: TierId = "T1b"
-
-    def __init__(self, chain: ChainRec, unit: str, source: str) -> None:
-        self.unit = unit
-        self.source = source
-        self.ids = _allowed_ids(chain)
-        self.base = self._features(chain.instruction)
-        user = [c for c in chain.constraints if c.scope == "user"]
-        org = [c for c in chain.constraints if c.scope == "org"]
-        self.user_limit = user[0].spec.limit.max_value if user and user[0].spec.limit else None
-        self.org_cap = org[0].spec.limit.max_value if org and org[0].spec.limit else None
-
-    def _features(self, text: str) -> Any:
-        return features(text, unit=self.unit, source=self.source, ids=self.ids)
-
-    def applies(self, ctx: CheckContext) -> bool:
-        return bool(ctx.registered)
-
-    async def run(self, ctx: CheckContext) -> TierOutcome:
-        f = self._features(ctx.request.envelope.payload_text)
-        b = self.base
-        raised = bool(f.amounts - b.amounts)
-        user_drift = (
-            f.injected or raised or f.permission != b.permission or f.approval != b.approval
-            or f.ids != b.ids or (self.user_limit is not None and self.user_limit not in f.amounts)
-        )  # fmt: skip
-        org_drift = f.injected or raised or (
-            self.org_cap is not None and self.org_cap not in f.amounts
-        )  # fmt: skip
-        findings = [
-            Finding(Failure(kind="TEXTUAL_DRIFT", constraint_id=c.constraint_id,
-                            detail="reference features differ from T_0"))
-            for c in ctx.registered
-            if (user_drift if c.scope == "user" else org_drift)
-        ]  # fmt: skip
-        return TierOutcome(findings=findings, terminal=bool(findings))
-
-
-def _allowed_ids(chain: ChainRec) -> list[str]:
-    subject = next(c.spec.subject for c in chain.constraints if c.scope == "user")
-    return re.findall(r":([^,{}]+)", subject)
-
-
-# --------------------------------------------------------------------------- #
-# Running one chain
-# --------------------------------------------------------------------------- #
-
-
-def _spec(chain: ChainRec, i: int) -> ConstraintSpec:
-    return ConstraintSpec.model_validate(chain.constraints[i].spec.model_dump())
-
-
-def _binding(chain: ChainRec, tool: str) -> ActionBinding:
-    return ActionBinding.model_validate(chain.tools[tool].model_dump())
-
-
-@dataclass
-class ChainResult:
-    chain: ChainRec
-    attributions: list[Attribution]
-    ids: dict[str, UUID]  # record constraint id -> registered id
-
-    @property
-    def predicted(self) -> Attribution | None:
-        """The earliest named culprit (hops are numbered topologically; root is 0)."""
-        named = [a for a in self.attributions if a.culprit_hop is not None]
-        return min(named, key=lambda a: _hop_number(a.culprit_hop or ""), default=None)
-
-    def for_constraint(self, cid: str) -> Attribution | None:
-        return next((a for a in self.attributions if a.constraint_id == self.ids[cid]), None)
-
-
-def _hop_number(hop: str) -> int:
-    return 0 if hop == "root" else int(hop.removeprefix("h"))
-
-
-async def run_chain(chain: ChainRec, *, detector: str, dwell_s: float) -> ChainResult:
-    store, clock = InMemoryStore(), FrozenClock(T_ISSUE)
-    words = load_scenarios()[chain.scenario].words
-    unit = next(c.spec.limit.unit for c in chain.constraints if c.spec.limit)
-    tiers: list[Tier] = [IntegrityTier(), ActionTier()]
-    tiers.append(
-        LexicalTier() if detector == "rules" else OracleTextTier(chain, unit, words["source"])
-    )
-    guard = GuardConfig(dwell_threshold_s=dwell_s)
-    verify = VerifyCheckpoint(
-        store=store, clock=clock, checker=TieredChecker(tiers, clock), policy=Policy(),
-        guard=guard,
-    )  # fmt: skip
-    opened = await OpenTrace(store=store, clock=clock, llm_mode="off", default_max_age_s=MAX_AGE_S)(
-        OpenTraceRequest(
-            chain.instruction,
-            owner=chain.constraints[0].spec.owner,
-            declared=[_spec(chain, i) for i in range(len(chain.constraints))],
-            extract=False,
-        )
-    )
-    ids = {rec.id: c.constraint_id for rec, c in zip(chain.constraints, opened.constraints,
-                                                     strict=True)}  # fmt: skip
-    trace_id = opened.trace_id
-    envelopes: dict[str, Envelope] = {"root": opened.envelope}
-
-    async def submit(**kw: Any) -> None:
-        await verify(CheckpointRequest(trace_id=trace_id, **kw))
-
-    for hop in sorted(chain.hops, key=lambda h: h.arrival):
-        target = T_ISSUE + timedelta(seconds=hop.consumed_at_s)
-        clock.advance(max(0.0, (target - clock.now()).total_seconds()))
-        hop_id = f"h{hop.hop}"
-        parents = [f"h{p}" for p in hop.parents] or ["root"]
-        enqueued = target - timedelta(seconds=hop.queue_dwell_s)
-        for parent in parents:
-            for delivery in range(1, hop.delivery + 1):  # at-least-once: redelivered twice
-                await submit(
-                    hop_id=hop_id, checkpoint="CONSUME", envelope=envelopes[parent],
-                    transport_meta=TransportMeta(
-                        message_id=f"{parent}->{hop_id}", delivery_count=delivery,
-                        enqueued_at=enqueued, consumed_at=target,
-                    ),
-                )  # fmt: skip
-        ps = [envelopes[p] for p in parents]
-        env = Envelope(
-            trace_id=trace_id,
-            hop=HopMeta(
-                hop_id=hop_id, parent_hop_ids=parents,
-                hop_seq=max(p.hop.hop_seq for p in ps) + 1, agent_id=hop.agent,
-                emitted_at=target,
-            ),
-            constraints=list(opened.envelope.constraints),
-            envelope_digest=opened.envelope.envelope_digest,
-            payload_text=hop.text,
-        )  # fmt: skip
-        envelopes[hop_id] = env
-        if hop.action is not None:
-            await submit(
-                hop_id=f"{hop_id}.t1", checkpoint="TOOL_CALL", envelope=env,
-                proposed_action=ProposedAction(
-                    tool=hop.action.tool, args=dict(hop.action.args),
-                    binding=_binding(chain, hop.action.tool),
-                ),
-            )  # fmt: skip
-        # Like the SDK's guard_hop: every agent publishes its output, sinks included.
-        await submit(hop_id=hop_id, checkpoint="PUBLISH", envelope=env)
-
-    report = await AttributeTrace(store=store, clock=clock, params=AttributionParams(guard=guard))(
-        trace_id
-    )
-    return ChainResult(chain, report.attributions, ids)
+async def run_chain(chain: ChainRec, *, detector: str, dwell_s: float) -> ChainRun:
+    """One chain under the ``rules`` (config R) or ``oracle-text`` (ORACLE) detector."""
+    return await _run(chain, get(DETECTORS[detector]), dwell_s=dwell_s)
 
 
 # --------------------------------------------------------------------------- #
@@ -267,7 +84,7 @@ class Tally:
     agent: int = 0
     cause: int = 0  # cause correct, among hop-correct
 
-    def add(self, r: ChainResult) -> None:
+    def add(self, r: ChainRun) -> None:
         lab = r.chain.label
         self.n += 1
         pred = r.predicted
@@ -307,7 +124,7 @@ class SliceReport:
     controls_attributed: int = 0
     causes: dict[str, int] = field(default_factory=lambda: defaultdict(int))
 
-    def add(self, r: ChainResult) -> None:
+    def add(self, r: ChainRun) -> None:
         lab = r.chain.label
         if not lab.drift:
             self.controls += 1

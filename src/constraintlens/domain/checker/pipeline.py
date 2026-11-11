@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from constraintlens.domain.async_guard import GuardAssessment, GuardConfig, assess
 from constraintlens.domain.models import Failure
-from constraintlens.domain.projections import HopHistory, default_idempotency_key
+from constraintlens.domain.projections import HopHistory, request_key
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -75,7 +75,7 @@ class CheckContext:
     def assessment(self) -> GuardAssessment:
         """Async-guard findings for this checkpoint (computed once, pure)."""
         r = self.request
-        key = self.key or default_idempotency_key(r.trace_id, r.hop_id, r.checkpoint)
+        key = self.key or request_key(r)
         return assess(r, self.registered, self.history, self.now, self.guard, key=key)
 
     @property

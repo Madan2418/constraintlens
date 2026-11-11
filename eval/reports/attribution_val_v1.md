@@ -1,6 +1,6 @@
 # Attribution accuracy on driftchain-bench `val` (Phase 7)
 
-Benchmark `driftchain-bench-v0.1.0-seed7-n4000.jsonl`, split `val`: 816 chains (408 drifted, 408 controls). Generated 2026-11-11T06:04:32+00:00.
+Benchmark `driftchain-bench-v0.1.0-seed7-n4000.jsonl`, split `val`: 816 chains (408 drifted, 408 controls). Generated 2026-11-11T06:56:00+00:00.
 
 Correct = the earliest culprit hop named equals `label.mutated_hop` (§4.4). `rules` is the system with the tiers available on this host (T0, T1a, T1b; no NLI model, no judge). `oracle-text` swaps T1b for the benchmark's reference features, an exact text detector, to isolate the attribution algorithm: an upper bound, not a system result. theta = 0.35, delta_min = 0.15 (defaults, untuned).
 

@@ -1,7 +1,7 @@
 # ConstraintLens developer tasks (ARCHITECTURE.md §19.2).
 # Targets for later phases fail loudly instead of pretending to work.
 
-.PHONY: setup test extraction-eval attribution-eval coverage-domain lint format-check format typecheck imports check integration eval bench bench-validate demo demo-baseline demo-protected demo-async latency serve
+.PHONY: setup test extraction-eval attribution-eval eval-test coverage-domain lint format-check format typecheck imports check integration eval bench bench-validate demo demo-baseline demo-protected demo-async latency serve
 
 setup:
 	uv sync --all-extras
@@ -46,8 +46,16 @@ integration:
 	@test -n "$(REDIS_URL)" || (echo "set REDIS_URL to a running Redis" && exit 1)
 	REDIS_URL=$(REDIS_URL) uv run pytest -m integration tests
 
+# Phase 8: provisional tuning on val, then every runnable configuration on val
+# (tables, bootstrap CIs, figures in eval/reports). The test split stays locked until
+# eval/configs/thresholds.json is frozen (ADR 0010). Needs `make bench` first.
 eval:
-	@echo "Evaluation harness arrives in Phase 8." && exit 1
+	uv run python -m eval.tune --out eval/reports
+	uv run python -m eval.run --split val --out eval/reports
+	uv run python -m eval.attribution_accuracy --out eval/reports
+
+eval-test:
+	uv run python -m eval.run --split test --out eval/reports
 
 # Phase 6: generate the benchmark release, then prove schema lock + reproducibility.
 bench:

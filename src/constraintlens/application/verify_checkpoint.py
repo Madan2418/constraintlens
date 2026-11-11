@@ -37,9 +37,9 @@ from constraintlens.domain.errors import DependencyUnavailable, InvalidEnvelope,
 from constraintlens.domain.models import EventDraft, Verdict
 from constraintlens.domain.projections import (
     base_hop_id,
-    default_idempotency_key,
     fold,
     request_fingerprint,
+    request_key,
 )
 from constraintlens.domain.redaction import ORDER, redact
 
@@ -128,9 +128,7 @@ class VerifyCheckpoint:
     async def run(
         self, request: CheckpointRequest, *, idempotency_key: str | None = None
     ) -> CheckpointOutcome:
-        key = idempotency_key or default_idempotency_key(
-            request.trace_id, request.hop_id, request.checkpoint
-        )
+        key = idempotency_key or request_key(request)
         lock = self._locks.setdefault(key, asyncio.Lock())
         async with lock:
             return await self._verify(request, key)
@@ -146,7 +144,7 @@ class VerifyCheckpoint:
         if state.status == "unknown":
             raise UnknownTrace(f"trace {request.trace_id} was never opened")
 
-        triple = default_idempotency_key(request.trace_id, request.hop_id, request.checkpoint)
+        triple = request_key(request)
         fingerprint = request_fingerprint(request)
         stored = state.stored_verdict(key, triple)
         stored_fp = state.fingerprint_by_checkpoint.get(triple)
@@ -273,7 +271,10 @@ class VerifyCheckpoint:
                 ev("WARNING", {"held": True, "idempotency_key": key, "verdict": verdict_json})
             )
         else:
-            drafts.append(ev("VERDICT_ISSUED", {"idempotency_key": key, "verdict": verdict_json}))
+            issued: dict[str, Any] = {"idempotency_key": key, "verdict": verdict_json}
+            if request.checkpoint == "CONSUME":  # the message it answers (ADR 0010)
+                issued["consumed_hop_id"] = request.envelope.hop.hop_id
+            drafts.append(ev("VERDICT_ISSUED", issued))
         drafts.append(
             ev(
                 "DECISION_ENFORCED",

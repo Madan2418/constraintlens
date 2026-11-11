@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="viz" viewBox="0 0 740 448" width="740" height="448" role="img" aria-label="False-block rate (control chains)">
+
+<style>
+  .viz { --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --grid:#e4e3df; --bar:#2a78d6; }
+  @media (prefers-color-scheme: dark) {
+    .viz { --surface:#1a1a19; --ink:#f0efec; --ink-2:#c3c2b7; --grid:#3a3a37; --bar:#3987e5; }
+  }
+  .bg { fill: var(--surface); }
+  .title { fill: var(--ink); font: 600 14px system-ui, sans-serif; }
+  .sub { fill: var(--ink-2); font: 12px system-ui, sans-serif; }
+  .lab { fill: var(--ink); font: 12px system-ui, sans-serif; }
+  .val { fill: var(--ink-2); font: 11px ui-monospace, monospace; }
+  .grid { stroke: var(--grid); stroke-width: 1; }
+  .bar { fill: var(--bar); }
+  .ci { stroke: var(--ink-2); stroke-width: 1.5; }
+</style>
+
+<rect class="bg" width="740" height="448" rx="8"/>
+<text class="title" x="16" y="22">False-block rate (control chains)</text>
+<text class="sub" x="16" y="38">driftchain-bench val, 816 chains; whiskers: 95% bootstrap CI</text>
+<line class="grid" x1="290.0" y1="54" x2="290.0" y2="424"/>
+<text class="val" x="290.0" y="440" text-anchor="middle">0%</text>
+<line class="grid" x1="385.0" y1="54" x2="385.0" y2="424"/>
+<text class="val" x="385.0" y="440" text-anchor="middle">25%</text>
+<line class="grid" x1="480.0" y1="54" x2="480.0" y2="424"/>
+<text class="val" x="480.0" y="440" text-anchor="middle">50%</text>
+<line class="grid" x1="575.0" y1="54" x2="575.0" y2="424"/>
+<text class="val" x="575.0" y="440" text-anchor="middle">75%</text>
+<line class="grid" x1="670.0" y1="54" x2="670.0" y2="424"/>
+<text class="val" x="670.0" y="440" text-anchor="middle">100%</text>
+<text class="lab" x="280" y="77.0" text-anchor="end">B0  No check</text>
+<line class="ci" x1="290.0" y1="73.0" x2="290.0" y2="73.0"><title>B0  No check: 0.0% (95% CI 0.0% to 0.0%)</title></line>
+<text class="val" x="296.0" y="77.0">0.0%</text>
+<text class="lab" x="280" y="103.0" text-anchor="end">B1  Presence-only</text>
+<line class="ci" x1="290.0" y1="99.0" x2="290.0" y2="99.0"><title>B1  Presence-only: 0.0% (95% CI 0.0% to 0.0%)</title></line>
+<text class="val" x="296.0" y="103.0">0.0%</text>
+<text class="lab" x="280" y="129.0" text-anchor="end">B2  One-shot gate</text>
+<line class="ci" x1="290.0" y1="125.0" x2="290.0" y2="125.0"><title>B2  One-shot gate: 0.0% (95% CI 0.0% to 0.0%)</title></line>
+<text class="val" x="296.0" y="129.0">0.0%</text>
+<text class="lab" x="280" y="155.0" text-anchor="end">B3  Tool-arg check only</text>
+<line class="ci" x1="290.0" y1="151.0" x2="290.0" y2="151.0"><title>B3  Tool-arg check only: 0.0% (95% CI 0.0% to 0.0%)</title></line>
+<text class="val" x="296.0" y="155.0">0.0%</text>
+<text class="lab" x="280" y="181.0" text-anchor="end">R  ConstraintLens, rules tiers</text>
+<path class="bar" d="M290,170.0 h28.6 a4.0,4.0 0 0 1 4.0,4.0 v6.0 a4.0,4.0 0 0 1 -4.0,4.0 h-28.6 z"><title>R  ConstraintLens, rules tiers: 8.6% (95% CI 5.9% to 11.4%)</title></path>
+<line class="ci" x1="312.3" y1="177.0" x2="333.2" y2="177.0"><title>R  ConstraintLens, rules tiers: 8.6% (95% CI 5.9% to 11.4%)</title></line>
+<text class="val" x="339.2" y="181.0">8.6%</text>
+<text class="lab" x="280" y="207.0" text-anchor="end">C1  ConstraintLens, no Tier 2</text>
+<text class="val" x="294" y="207.0">not run</text>
+<text class="lab" x="280" y="233.0" text-anchor="end">C2  ConstraintLens, full</text>
+<text class="val" x="294" y="233.0">not run</text>
+<text class="lab" x="280" y="259.0" text-anchor="end">C3-T1b  Ablation: no lexical tier</text>
+<line class="ci" x1="290.0" y1="255.0" x2="290.0" y2="255.0"><title>C3-T1b  Ablation: no lexical tier: 0.0% (95% CI 0.0% to 0.0%)</title></line>
+<text class="val" x="296.0" y="259.0">0.0%</text>
+<text class="lab" x="280" y="285.0" text-anchor="end">C3-guard  Ablation: no async guard</text>
+<path class="bar" d="M290,274.0 h28.6 a4.0,4.0 0 0 1 4.0,4.0 v6.0 a4.0,4.0 0 0 1 -4.0,4.0 h-28.6 z"><title>C3-guard  Ablation: no async guard: 8.6% (95% CI 5.9% to 11.4%)</title></path>
+<line class="ci" x1="312.3" y1="281.0" x2="333.2" y2="281.0"><title>C3-guard  Ablation: no async guard: 8.6% (95% CI 5.9% to 11.4%)</title></line>
+<text class="val" x="339.2" y="285.0">8.6%</text>
+<text class="lab" x="280" y="311.0" text-anchor="end">C3-comp  Ablation: no composition</text>
+<path class="bar" d="M290,300.0 h28.6 a4.0,4.0 0 0 1 4.0,4.0 v6.0 a4.0,4.0 0 0 1 -4.0,4.0 h-28.6 z"><title>C3-comp  Ablation: no composition: 8.6% (95% CI 5.9% to 11.4%)</title></path>
+<line class="ci" x1="312.3" y1="307.0" x2="333.2" y2="307.0"><title>C3-comp  Ablation: no composition: 8.6% (95% CI 5.9% to 11.4%)</title></line>
+<text class="val" x="339.2" y="311.0">8.6%</text>
+<text class="lab" x="280" y="337.0" text-anchor="end">C3-T1c  Ablation: no NLI</text>
+<text class="val" x="294" y="337.0">not run</text>
+<text class="lab" x="280" y="363.0" text-anchor="end">C3-T2  Ablation: no judge</text>
+<text class="val" x="294" y="363.0">not run</text>
+<text class="lab" x="280" y="389.0" text-anchor="end">EMB  Embedding similarity only</text>
+<text class="val" x="294" y="389.0">not run</text>
+<text class="lab" x="280" y="415.0" text-anchor="end">ORACLE  Oracle text detector (analysis)</text>
+<line class="ci" x1="290.0" y1="411.0" x2="290.0" y2="411.0"><title>ORACLE  Oracle text detector (analysis): 0.0% (95% CI 0.0% to 0.0%)</title></line>
+<text class="val" x="296.0" y="415.0">0.0%</text>
+</svg>

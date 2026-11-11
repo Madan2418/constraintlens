@@ -213,8 +213,8 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
       <h1>ConstraintLens build log</h1>
       <p class="lede">A runtime framework that detects semantic constraint drift in asynchronous multi-agent AI systems. It checks that a constraint such as "refund up to $100" still means the same thing after each agent rewrites the task, and it blocks the tool call when the meaning has been lost.</p>
       <div class="status-bar">
-        <span class="pill ok"><span class="dot"></span>Phases 0–7 complete · Phase 8 next</span>
-        <span class="pill neutral">Sessions logged: 9</span>
+        <span class="pill ok"><span class="dot"></span>Phases 0–8 complete (Phase 8 on val; test locked) · Phase 9 next</span>
+        <span class="pill neutral">Sessions logged: 10</span>
         <span class="pill neutral">Last updated 2026-11-11</span>
         <span class="pill neutral">Python 3.11+ · FastAPI · React</span>
       </div>
@@ -415,7 +415,7 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
           <div class="mock-tabs"><span>Live run</span><span>Side-by-side</span><span>Trace inspector</span><span>Async</span><span class="on">Results</span><span>Scenarios</span></div>
         </div>
         <div class="mock-body">
-          <div class="placeholder-note">Placeholder bars that show the layout only. No evaluation has been run yet.</div>
+          <div class="placeholder-note">Placeholder bars that show the layout only. Real val numbers (rules tiers) are in eval/reports/eval_val_v1.md; C2 and embedding-only have not run.</div>
           <div class="mock-label">Detection recall by mutation operator · C2 (full) vs embedding-only</div>
           <div class="bars">
             <div class="bar"><span>NUMERIC_LOOSEN</span><div class="track"><div class="fill" style="width:90%"></div></div></div>
@@ -443,8 +443,8 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
         <div class="phase"><span class="num">P5</span><div><h4>Semantic tiers</h4><p>T1b lexical, T1c NLI, T2 judge with cache, uncertainty-band routing, degraded path.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P6</span><div><h4>driftchain-bench</h4><p>6 scenarios × 9 operators, async profiles, seeded generator, JSONL schema, dataset card.</p></div><span class="pill ok">done</span></div>
         <div class="phase"><span class="num">P7</span><div><h4>Attribution</h4><p>DAG edge deltas, fan-in, async-cause classification, replay endpoint.</p></div><span class="pill ok">done</span></div>
-        <div class="phase"><span class="num">P8</span><div><h4>Evaluation</h4><p>B0–B3, C1–C3 and embedding-only configs, threshold tuning on val, bootstrap CIs, <code>make eval</code>.</p></div><span class="pill warn">next</span></div>
-        <div class="phase"><span class="num">P9</span><div><h4>Dashboard and CLI</h4><p>The six views previewed above, plus the Typer CLI.</p></div><span class="pill neutral">planned</span></div>
+        <div class="phase"><span class="num">P8</span><div><h4>Evaluation</h4><p>B0–B3, C1–C3 and embedding-only configs, threshold tuning on val, bootstrap CIs, <code>make eval</code>.</p></div><span class="pill ok">done on val</span></div>
+        <div class="phase"><span class="num">P9</span><div><h4>Dashboard and CLI</h4><p>The six views previewed above, plus the Typer CLI.</p></div><span class="pill warn">next</span></div>
         <div class="phase"><span class="num">P10</span><div><h4>Hardening and write-up</h4><p>docker compose, threat model, dataset release, demo script.</p></div><span class="pill neutral">planned</span></div>
       </div>
       <div class="card">
@@ -584,6 +584,18 @@ svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
           <li><b>Service</b>: <code>GET /v1/traces/{id}/attribution</code> (computed now, θ / δ_min overridable). Close appends <code>ATTRIBUTION_COMPUTED</code> before <code>TRACE_CLOSED</code>, and the projection and trace summary expose it. Replay returns original and replayed attribution. <code>OpenTraceRequest.extract=False</code> registers declared specs only. The protected demos now print the attribution card, e.g. <code>h2 (triage) … cause REWRITE</code> and <code>h3 (queue edge) … STALE_CONTEXT</code>.</li>
           <li><b>Exit criterion: accuracy on val</b> (<code>make attribution-eval</code>, 408 drifted chains). Rules only (T0/1a/1b, the system on this host): 70.8% hop accuracy at the default 300 s dwell, 85.0% with the age bound only. With an exact oracle text detector (an upper bound, not a system result) it is 100% hop and cause, with no attributions on controls. The remaining gap is detection (SCOPE_WIDEN 34%, NEGATION_FLIP 72%) and the untuned dwell threshold, which Phase 8 will tune.</li>
           <li>ADR 0009, README section and status, Makefile target, report <code>eval/reports/attribution_val_v1.md</code>. Totals: 780 tests pass (2 real-Redis tests skipped locally), domain coverage 98% (attribution 96%), ruff and strict mypy clean. Host notes: Application Control now blocks the mypy and pytest launchers and grimp's Rust extension. mypy was reinstalled as pure Python and run with <code>python -m</code>. import-linter cannot run locally, so its layer contracts were checked by hand; CI runs it.</li>
+        </ul>
+      </div>
+      <div class="session" style="margin-top:22px">
+        <div class="meta"><h3>Session 10</h3><span class="pill neutral">2026-11-11</span><span class="pill ok">Phase 8 harness done (val)</span><span class="pill warn">test split locked</span><span class="pill ok">pushed</span></div>
+        <ul>
+          <li><b>Scope agreed with you</b>: build the whole harness and run what is runnable on <code>val</code>. Tuning is provisional, and <code>test</code> stays locked, because the human labels, an NLI model (torch not installed) and a judge key are all missing.</li>
+          <li><b>Harness</b>: one runner replays chains through the real use cases (frozen service clock, real latency clock). It covers every §14.2 configuration (B0–B3, C1, C2, the C3 ablations, EMB), plus <code>R</code> (rules tiers, the system without NLI) and an <code>ORACLE</code> upper bound. Configurations whose models are missing are reported as "not run", never substituted. There are exact metric definitions (detected, halted, false block, lag, composition recall), per-operator, topology and async-slice breakdowns, a bootstrap over chains (1,000 resamples, seed 7), and SVG figures with CI whiskers. <code>GuardConfig.enabled</code> enables the async-guard ablation.</li>
+          <li><b>Provisional tuning</b>: only the dwell threshold moves results without semantic scores. The objective was fixed before the sweep: maximize recall with false blocks ≤ 5%. The bound is <b>not met</b> (best 8.6%), so 14,400 s was chosen as the lowest-false-block value. θ and δ_min are untuned.</li>
+          <li><b>Test lock</b>: <code>--split test</code> refuses without a frozen <code>thresholds.json</code>, and a ledger allows one run per configuration.</li>
+          <li><b>Val results</b> (816 chains): R recall 96.1% [94.1, 97.8], violation prevention 96.4%, false blocks 8.6%, F1 85.8%. B3 (tool args only): 55.9% / 82.3% / 0%. Ablations: without T1b, recall drops to 67.9%. Without the guard, STALE_CONTEXT recall drops from 100% to 18%. Without composition, DROP_ONE recall drops from 100% to 9%. ORACLE reaches 100% recall with 0% false blocks, so the remaining gap is detection (SCOPE_WIDEN, NEGATION_FLIP, Tier 1b false positives on hard negatives).</li>
+          <li><b>Bug found and fixed</b>: a fan-in join's second CONSUME had the same <code>(trace, hop, CONSUME)</code> key as its first. It was treated as a conflicting duplicate, so its redeliveries got fresh verdicts (17 on val). The CONSUME key now names the consumed envelope hop, in the projections and in a new SQLite column inside the UNIQUE constraint. A regression test covers both stores, and conflicting redeliveries are now 0.</li>
+          <li>ADR 0010, README, <code>make eval</code> / <code>make eval-test</code>. Totals: 798 tests pass (2 real-Redis tests skipped locally), domain coverage 98%, ruff and strict mypy clean; a Hypothesis test of the Phase 2 demo agents was made deadline-free after one timing flake on a loaded run. Still open: <code>test</code> numbers, C1/C2/EMB, judge cost, live LLM-agent trials, human-label agreement.</li>
         </ul>
       </div>
     </section>
